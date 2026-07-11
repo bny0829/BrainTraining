@@ -1,0 +1,14 @@
+# Godot
+.godot/
+*.translation
+export_presets.cfg.orig
+
+# 匯出成品
+export/
+*.apk
+*.aab
+*.exe.import
+
+# 系統
+Thumbs.db
+Desktop.ini

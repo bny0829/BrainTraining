@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($paths = @\\(\"$env:LOCALAPPDATA\\\\Programs\", \"C:\\\\Program Files\", \"C:\\\\Program Files \\(x86\\)\", \"C:\\\\Benny\\\\Tools\", \"C:\\\\Tools\"\\); foreach \\($p in $paths\\) { if \\(Test-Path $p\\) { Get-ChildItem $p -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'godot|unity|flutter' } | Select-Object FullName } }; try { \\(Get-Command godot -ErrorAction Stop\\).Source } catch { \"godot not in PATH\" }; try { \\(Get-Command godot4 -ErrorAction Stop\\).Source } catch { \"godot4 not in PATH\" })"
+    ]
+  }
+}
