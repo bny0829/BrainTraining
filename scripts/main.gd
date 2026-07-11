@@ -39,6 +39,12 @@ func open_sudoku(config: Dictionary) -> void:
 	_switch(screen)
 
 
+func open_gomoku(config: Dictionary) -> void:
+	var screen := GomokuScreen.new()
+	screen.config = config
+	_switch(screen)
+
+
 func _switch(screen: Control) -> void:
 	if _current != null:
 		_current.queue_free()

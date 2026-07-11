@@ -51,6 +51,22 @@ func set_in_progress(state: Dictionary) -> void:
 	save()
 
 
+# ---- 通用戰績（所有新遊戲一律用這組 API） ----
+
+func record_result(game: String, difficulty: int, won: bool) -> void:
+	var s := section(game + "_stats")
+	s["played"] = int(s.get("played", 0)) + 1
+	if won:
+		s["won"] = int(s.get("won", 0)) + 1
+		var key := "won_%d" % difficulty
+		s[key] = int(s.get(key, 0)) + 1
+	save()
+
+
+func stats(game: String) -> Dictionary:
+	return section(game + "_stats")
+
+
 # ---- 數獨戰績 ----
 
 func record_sudoku_result(difficulty: int, seconds: int, won: bool) -> void:

@@ -93,7 +93,8 @@ func _build_daily_card(col: VBoxContainer) -> void:
 
 func _build_continue_card(col: VBoxContainer) -> void:
 	var st := SaveManager.get_in_progress()
-	if st.is_empty() or String(st.get("game", "")) != "sudoku":
+	var game := String(st.get("game", ""))
+	if game != "sudoku" and game != "gomoku":
 		return
 	var inner := _card(col)
 	var head := Label.new()
@@ -101,21 +102,33 @@ func _build_continue_card(col: VBoxContainer) -> void:
 	head.add_theme_font_size_override("font_size", 34)
 	inner.add_child(head)
 
-	var mode_text := "每日挑戰" if String(st.get("mode", "")) == "daily" else "數獨"
 	var desc := Label.new()
-	desc.text = "%s・%s・%s" % [
-		mode_text,
-		SudokuLogic.DIFFICULTY_TEXT[int(st.get("difficulty", 0))],
-		SudokuScreen.format_time(int(st.get("seconds", 0))),
-	]
+	if game == "sudoku":
+		var mode_text := "每日挑戰" if String(st.get("mode", "")) == "daily" else "數獨"
+		desc.text = "%s・%s・%s" % [
+			mode_text,
+			SudokuLogic.DIFFICULTY_TEXT[int(st.get("difficulty", 0))],
+			SudokuScreen.format_time(int(st.get("seconds", 0))),
+		]
+	else:
+		var move_count: int = (st.get("moves", []) as Array).size()
+		desc.text = "五子棋・%s・第 %d 手" % [
+			GomokuLogic.DIFFICULTY_TEXT[int(st.get("difficulty", 0))],
+			move_count + 1,
+		]
 	desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 	inner.add_child(desc)
 
 	var btn := Button.new()
 	btn.text = "繼續"
-	btn.pressed.connect(func() -> void:
-		Main.instance.open_sudoku({"mode": "resume"})
-	)
+	if game == "sudoku":
+		btn.pressed.connect(func() -> void:
+			Main.instance.open_sudoku({"mode": "resume"})
+		)
+	else:
+		btn.pressed.connect(func() -> void:
+			Main.instance.open_gomoku({"mode": "resume"})
+		)
 	inner.add_child(btn)
 
 
@@ -131,13 +144,13 @@ func _build_games(col: VBoxContainer) -> void:
 	grid.add_theme_constant_override("v_separation", 16)
 	col.add_child(grid)
 
-	_game_card(grid, "數獨", "4 種難度・筆記・提示", true)
-	_game_card(grid, "五子棋", "即將推出", false)
-	_game_card(grid, "黑白棋", "即將推出", false)
-	_game_card(grid, "踩地雷", "即將推出", false)
+	_game_card(grid, "數獨", "4 種難度・筆記・提示", _pick_sudoku_difficulty)
+	_game_card(grid, "五子棋", "AI 對戰・4 級難度", _pick_gomoku_difficulty)
+	_game_card(grid, "黑白棋", "即將推出", Callable())
+	_game_card(grid, "踩地雷", "即將推出", Callable())
 
 
-func _game_card(grid: GridContainer, game_name: String, desc_text: String, available: bool) -> void:
+func _game_card(grid: GridContainer, game_name: String, desc_text: String, on_start: Callable) -> void:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.add_child(panel)
@@ -163,9 +176,9 @@ func _game_card(grid: GridContainer, game_name: String, desc_text: String, avail
 	inner.add_child(desc)
 
 	var btn := Button.new()
-	if available:
+	if on_start.is_valid():
 		btn.text = "開始"
-		btn.pressed.connect(_pick_sudoku_difficulty)
+		btn.pressed.connect(on_start)
 	else:
 		btn.text = "敬請期待"
 		btn.disabled = true
@@ -187,22 +200,49 @@ func _start_sudoku(difficulty: int) -> void:
 	Main.instance.open_sudoku({"mode": "normal", "difficulty": difficulty})
 
 
+func _pick_gomoku_difficulty() -> void:
+	var buttons: Array = []
+	for d in GomokuLogic.Difficulty.values():
+		buttons.append({
+			"text": "%s %s" % [GomokuLogic.DIFFICULTY_TEXT[d], GomokuLogic.DIFFICULTY_STARS[d]],
+			"action": _start_gomoku.bind(d),
+		})
+	buttons.append({"text": "取消", "secondary": true})
+	OverlayDialog.open(self, "選擇 AI 難度", "你執黑棋先手", buttons)
+
+
+func _start_gomoku(difficulty: int) -> void:
+	Main.instance.open_gomoku({"mode": "normal", "difficulty": difficulty})
+
+
 func _build_stats(col: VBoxContainer) -> void:
 	var s := SaveManager.sudoku_stats()
 	var played := int(s.get("played", 0))
-	if played == 0:
-		return
+	if played > 0:
+		var text := "完成 %d / %d 局" % [int(s.get("won", 0)), played]
+		for d in SudokuLogic.Difficulty.values():
+			var best := int(s.get("best_%d" % d, 0))
+			if best > 0:
+				text += "\n%s 最佳：%s" % [SudokuLogic.DIFFICULTY_TEXT[d], SudokuScreen.format_time(best)]
+		_stats_card(col, "數獨戰績", text)
+
+	var g := SaveManager.stats("gomoku")
+	var g_played := int(g.get("played", 0))
+	if g_played > 0:
+		var text := "勝 %d / %d 局" % [int(g.get("won", 0)), g_played]
+		for d in GomokuLogic.Difficulty.values():
+			var wins := int(g.get("won_%d" % d, 0))
+			if wins > 0:
+				text += "\n%s 勝場：%d" % [GomokuLogic.DIFFICULTY_TEXT[d], wins]
+		_stats_card(col, "五子棋戰績", text)
+
+
+func _stats_card(col: VBoxContainer, title: String, text: String) -> void:
 	var inner := _card(col)
 	var head := Label.new()
-	head.text = "數獨戰績"
+	head.text = title
 	head.add_theme_font_size_override("font_size", 34)
 	inner.add_child(head)
-
-	var text := "完成 %d / %d 局" % [int(s.get("won", 0)), played]
-	for d in SudokuLogic.Difficulty.values():
-		var best := int(s.get("best_%d" % d, 0))
-		if best > 0:
-			text += "\n%s 最佳：%s" % [SudokuLogic.DIFFICULTY_TEXT[d], SudokuScreen.format_time(best)]
 	var body := Label.new()
 	body.text = text
 	body.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
