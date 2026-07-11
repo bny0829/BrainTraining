@@ -117,6 +117,16 @@ func _run() -> void:
 	var g2 := main.current_screen() as GomokuScreen
 	_check(g2 != null, "五子棋續玩畫面未建立")
 	_check(g2.moves.size() == saved_moves, "五子棋續玩還原失敗")
+
+	# 重新開始必須清空棋盤
+	g2._new_game()
+	_check(g2.moves.is_empty(), "重新開始未清空手數")
+	var leftover := 0
+	for i in GomokuLogic.CELLS:
+		if g2.board.stones[i] != GomokuLogic.EMPTY:
+			leftover += 1
+	_check(leftover == 0, "重新開始後棋盤仍有殘子")
+	_check(g2.board.last_move == -1, "重新開始未清除最後一手標記")
 	print("[autotest] 五子棋 OK")
 
 	print("[autotest] PASS")

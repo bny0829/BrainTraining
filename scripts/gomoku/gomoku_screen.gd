@@ -260,6 +260,7 @@ func _go_home() -> void:
 # ---- 顯示與存檔 ----
 
 func _refresh() -> void:
+	board.queue_redraw()
 	_title_label.text = "五子棋・%s" % GomokuLogic.DIFFICULTY_TEXT[difficulty]
 	if finished:
 		_info_label.text = "對局結束・共 %d 手" % moves.size()
