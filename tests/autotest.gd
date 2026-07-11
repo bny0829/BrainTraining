@@ -87,8 +87,51 @@ func _run() -> void:
 	_check(resumed.board.values[idx2] == resumed.solution[idx2], "續玩資料還原失敗")
 	print("[autotest] 存檔續玩 OK")
 
+	# ---- 五子棋 ----
+	main.goto_home()
+	await tree.process_frame
+	main.open_gomoku({"mode": "normal", "difficulty": GomokuLogic.Difficulty.BEGINNER})
+	await tree.process_frame
+	var g := main.current_screen() as GomokuScreen
+	_check(g != null, "五子棋畫面未建立")
+
+	# 玩家下中央，等 AI 回應（背景執行緒）
+	g._on_cell_pressed(GomokuLogic.idx(7, 7))
+	_check(g.moves.size() == 1, "玩家落子失敗")
+	await _wait_for_ai(g)
+	_check(g.moves.size() == 2, "AI 未回應")
+	_check(g.board.stones[g.moves[1]] == GomokuLogic.WHITE, "AI 落子顏色錯誤")
+
+	# 悔棋收回雙方各一手
+	g._on_undo()
+	_check(g.moves.size() == 0, "悔棋失敗")
+
+	# 再下一手並測試存檔續玩
+	g._on_cell_pressed(GomokuLogic.idx(7, 7))
+	await _wait_for_ai(g)
+	var saved_moves: int = g.moves.size()
+	main.goto_home()
+	await tree.process_frame
+	main.open_gomoku({"mode": "resume"})
+	await tree.process_frame
+	var g2 := main.current_screen() as GomokuScreen
+	_check(g2 != null, "五子棋續玩畫面未建立")
+	_check(g2.moves.size() == saved_moves, "五子棋續玩還原失敗")
+	print("[autotest] 五子棋 OK")
+
 	print("[autotest] PASS")
 	get_tree().quit(0)
+
+
+## 等待五子棋 AI 執行緒完成並套用落子
+func _wait_for_ai(g: GomokuScreen) -> void:
+	var tries := 0
+	while g._ai_pending or g._ai_thread != null:
+		await get_tree().process_frame
+		tries += 1
+		if tries > 600:
+			_check(false, "等待 AI 逾時")
+			return
 
 
 func _check(cond: bool, msg: String) -> void:

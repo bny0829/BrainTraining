@@ -15,6 +15,13 @@ const ERROR := Color("#d65454")
 const SUCCESS := Color("#3f9e6e")
 const DISABLED := Color("#c9c9cf")
 
+# ---- 五子棋色票 ----
+const GOMOKU_BOARD := Color("#e6c793")
+const GOMOKU_LINE := Color("#8a6b45")
+const STONE_BLACK := Color("#26262c")
+const STONE_WHITE := Color("#fbfbf9")
+const STONE_WHITE_EDGE := Color("#b5b5bf")
+
 # ---- 棋盤色票 ----
 const CELL_BG := Color("#ffffff")
 const CELL_SELECTED := Color("#c9d4f6")

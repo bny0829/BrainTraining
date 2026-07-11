@@ -2,7 +2,7 @@
 
 一人團隊長期經營的**益智遊戲平台**：不是單一數獨 App，而是一個所有遊戲共用「每日挑戰、存檔、統計、UI 風格」的平台，每次更新新增一款經典遊戲。
 
-**目前版本：v0.1** — 平台首頁 + 數獨（4 種難度、筆記、提示、復原、每日挑戰、自動存檔續玩）。
+**目前版本：v0.2** — 平台首頁 + 數獨（4 種難度、筆記、提示、每日挑戰）+ 五子棋（AI 對戰 4 級難度、悔棋、續玩）。
 
 ## 如何執行
 
@@ -22,6 +22,9 @@ C:\Godot_v4.7-stable_win64.exe --path C:\Benny\Coding\MobileGame\BrainTraining
 # 數獨邏輯單元測試（產生器、唯一解、同種子重現）
 C:\Godot_v4.7-stable_win64.exe --headless --path . --script res://tests/test_sudoku_logic.gd
 
+# 五子棋邏輯單元測試（勝負判定、AI 即勝/防守、AI 對弈、效能）
+C:\Godot_v4.7-stable_win64.exe --headless --path . --script res://tests/test_gomoku_logic.gd
+
 # 全流程自動化測試（模擬玩家操作首頁與數獨）
 $env:BRAINCLUB_AUTOTEST = "1"
 C:\Godot_v4.7-stable_win64.exe --headless --path .
@@ -40,6 +43,7 @@ Remove-Item Env:BRAINCLUB_AUTOTEST
 | `scripts/home_screen.gd` | 平台首頁 |
 | `scripts/ui/` | 共用 UI：色票主題（`AppTheme`）、對話框（`OverlayDialog`） |
 | `scripts/sudoku/` | 數獨：核心演算法、棋盤繪製、遊戲畫面 |
+| `scripts/gomoku/` | 五子棋：AI（Negamax + Alpha-Beta）、棋盤繪製、遊戲畫面 |
 | `tests/` | 單元測試與自動化操作測試 |
 | `docs/` | 專案文件（見下） |
 
@@ -51,6 +55,7 @@ Remove-Item Env:BRAINCLUB_AUTOTEST
 | [02_Architecture.md](docs/02_Architecture.md) | 系統架構、存檔格式、新增遊戲 SOP |
 | [03_Game_Design_Sudoku.md](docs/03_Game_Design_Sudoku.md) | 數獨玩法規格與每日挑戰設計 |
 | [04_Conventions.md](docs/04_Conventions.md) | 程式碼規範與專案原則 |
+| [05_Game_Design_Gomoku.md](docs/05_Game_Design_Gomoku.md) | 五子棋玩法規格與 AI 設計 |
 
 ## 技術選型
 

@@ -8,7 +8,8 @@
 main.tscn（唯一場景）
 └── Main（scripts/main.gd）畫面路由 + 套用 AppTheme
     ├── HomeScreen   首頁（每日挑戰、續玩、遊戲清單、戰績）
-    └── SudokuScreen 數獨畫面（之後：GomokuScreen、ReversiScreen…）
+    ├── SudokuScreen 數獨畫面
+    └── GomokuScreen 五子棋畫面（之後：ReversiScreen…）
 
 Autoload（全域單例）
 ├── SaveManager  user://save.json 讀寫、戰績、進行中遊戲
@@ -54,7 +55,8 @@ Autoload（全域單例）
 
 規則：
 
-- 每款遊戲用自己的 section（`sudoku_stats`、`gomoku_stats`…），**不修改別人的結構**。
+- 每款遊戲用自己的 section（`sudoku_stats`、`gomoku_stats`…），**不修改別人的結構**。新遊戲一律用通用 API `SaveManager.record_result(game, difficulty, won)` 與 `stats(game)`。
+- 五子棋的 `in_progress` 只存 `moves` 落子序列，還原＝重播（資料量小且不易壞檔）。
 - JSON 讀回的數字都是 float，用 `_to_int_array()` 之類的輔助函式轉回。
 - 每一步操作即存檔（檔案很小，行動裝置可承受），程式被系統殺掉也不掉進度。
 
@@ -70,19 +72,25 @@ Autoload（全域單例）
 6. `tests/` 加對應測試
 7. **不允許**為了新遊戲修改既有遊戲的程式
 
-## 五、AI 模組規劃（v0.2+）
-
-五子棋與黑白棋共用一套對戰 AI 介面：
+## 五、對戰 AI 模組（v0.2 已落地於五子棋）
 
 ```
-GameState 介面：合法手列舉 / 落子 / 勝負判定 / 局面評分
+候選手產生（既有棋子附近的空點）
      ↓
-Minimax + Alpha-Beta（難度 = 深度 + 評分函數雜訊）
+型態分數排序（進攻 + 防守加權）
      ↓
-之後視需要升級 MCTS
+即勝 / 必擋 檢查（短路，不進搜尋）
+     ↓
+Negamax + Alpha-Beta（難度 = 深度 0～3 + 候選寬度 + 隨機性）
+     ↓
+背景 Thread 執行，_process 輪詢，離開畫面必 wait_to_finish()
 ```
 
-難度分級策略：Beginner（深度 1 + 隨機性）→ Expert（深度 4+、完整評分）。
+黑白棋（v0.3）重用同一結構：換走子規則（夾吃）與評估函數（角/邊權重 + 行動力），搜尋框架不變。之後視需要升級 MCTS。
+
+## 五之一、每日挑戰的多遊戲輪替（v0.3 規劃）
+
+`Daily` 目前固定出數獨。多遊戲後改為：星期幾 → (遊戲, 難度) 表，`in_progress.date` 過期作廢機制不變。
 
 ## 六、測試
 
