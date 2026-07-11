@@ -55,13 +55,16 @@ func _draw() -> void:
 	draw_rect(r, AppTheme.GOMOKU_BOARD)
 
 	# 15 路格線：延伸到棋盤邊緣，讓每個可落子點（含最外圈）都是完整十字，
-	# 玩家一眼就能看出全部交叉點都能下
+	# 玩家一眼就能看出全部交叉點都能下。
+	# 線寬必須隨格子大小縮放並開抗鋸齒：視窗縮小時固定 1px 的線會因不足
+	# 一個實體像素而不規則消失（畫面上只剩幾條線）。
 	var margin := s * 0.5
+	var lw := maxf(2.0, s * 0.045)
 	for k in n:
 		var x := r.position.x + margin + k * s
-		draw_line(Vector2(x, r.position.y), Vector2(x, r.position.y + r.size.y), AppTheme.GOMOKU_LINE, 1.0)
+		draw_line(Vector2(x, r.position.y), Vector2(x, r.position.y + r.size.y), AppTheme.GOMOKU_LINE, lw, true)
 		var y := r.position.y + margin + k * s
-		draw_line(Vector2(r.position.x, y), Vector2(r.position.x + r.size.x, y), AppTheme.GOMOKU_LINE, 1.0)
+		draw_line(Vector2(r.position.x, y), Vector2(r.position.x + r.size.x, y), AppTheme.GOMOKU_LINE, lw, true)
 
 	# 星位
 	for p in [[3, 3], [3, 11], [11, 3], [11, 11], [7, 7]]:

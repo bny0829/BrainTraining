@@ -89,15 +89,18 @@ func _draw() -> void:
 					)
 					_draw_centered(str(d), sub, s * 0.24, AppTheme.NOTE)
 
-	# 格線（3 的倍數為粗線）
+	# 格線（3 的倍數為粗線）。線寬隨格子縮放並開抗鋸齒，
+	# 避免視窗縮小時細線因不足一個實體像素而消失
+	var thin := maxf(2.0, s * 0.02)
+	var bold_w := maxf(4.0, s * 0.06)
 	for k in 10:
 		var bold := k % 3 == 0
-		var w := 3.0 if bold else 1.0
+		var w := bold_w if bold else thin
 		var color := AppTheme.GRID_LINE_BOLD if bold else AppTheme.GRID_LINE
 		var x := r.position.x + k * s
-		draw_line(Vector2(x, r.position.y), Vector2(x, r.position.y + r.size.y), color, w)
+		draw_line(Vector2(x, r.position.y), Vector2(x, r.position.y + r.size.y), color, w, true)
 		var y := r.position.y + k * s
-		draw_line(Vector2(r.position.x, y), Vector2(r.position.x + r.size.x, y), color, w)
+		draw_line(Vector2(r.position.x, y), Vector2(r.position.x + r.size.x, y), color, w, true)
 
 
 func _is_peer(i: int, j: int) -> bool:

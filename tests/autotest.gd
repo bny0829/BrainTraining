@@ -68,6 +68,7 @@ func _run() -> void:
 	screen._on_cell_pressed(idx2)
 	screen._on_hint()
 	_check(screen.board.values[idx2] == screen.solution[idx2], "提示失敗")
+	await _shot("sudoku.png")
 
 	# 存檔還原
 	var saved := SaveManager.get_in_progress()
@@ -109,6 +110,7 @@ func _run() -> void:
 	# 再下一手並測試存檔續玩
 	g._on_cell_pressed(GomokuLogic.idx(7, 7))
 	await _wait_for_ai(g)
+	await _shot("gomoku.png")
 	var saved_moves: int = g.moves.size()
 	main.goto_home()
 	await tree.process_frame
@@ -148,3 +150,14 @@ func _check(cond: bool, msg: String) -> void:
 	if not cond:
 		printerr("[autotest] FAIL：" + msg)
 		get_tree().quit(1)
+
+
+## 視覺驗證：設定 BRAINCLUB_SHOT=資料夾 且非 headless 時，存下畫面截圖
+func _shot(fname: String) -> void:
+	var dir := OS.get_environment("BRAINCLUB_SHOT")
+	if dir == "" or DisplayServer.get_name() == "headless":
+		return
+	await RenderingServer.frame_post_draw
+	var img := get_viewport().get_texture().get_image()
+	img.save_png(dir.path_join(fname))
+	print("[autotest] 截圖：" + fname)
