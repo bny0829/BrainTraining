@@ -22,9 +22,25 @@ var foundations: Array = [[], [], [], []]
 var columns: Array = [[], [], [], [], [], [], []]
 var face_up: Array[int] = [1, 1, 1, 1, 1, 1, 1]
 
+# 選取狀態（兩段式移動：先選牌、再點目的地）
+var selected_zone := ""   # "" = 無選取；"waste" 或 "column"
+var selected_pile := -1
+var selected_index := -1
+
 
 func _init() -> void:
 	custom_minimum_size = Vector2(300, 400)
+
+
+func set_selected(zone: String, pile: int, index: int) -> void:
+	selected_zone = zone
+	selected_pile = pile
+	selected_index = index
+	queue_redraw()
+
+
+func clear_selected() -> void:
+	set_selected("", -1, -1)
 
 
 func _notification(what: int) -> void:
@@ -110,6 +126,8 @@ func _draw() -> void:
 		_draw_slot(waste_rect)
 	else:
 		_draw_card_face(waste_rect, waste[-1])
+		if selected_zone == "waste":
+			_draw_selection(waste_rect)
 	# 基礎堆
 	for f in 4:
 		var rect := _slot_rect(3 + f, 0)
@@ -131,6 +149,13 @@ func _draw() -> void:
 				_draw_card_back(rect)
 			else:
 				_draw_card_face(rect, int(col[i]))
+				if selected_zone == "column" and selected_pile == c and i >= selected_index:
+					_draw_selection(rect)
+
+
+## 選取高亮：橘色外框
+func _draw_selection(rect: Rect2) -> void:
+	draw_rect(rect.grow(1.0), AppTheme.ACCENT, false, 3.0)
 
 
 func _draw_slot(rect: Rect2) -> void:

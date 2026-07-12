@@ -86,7 +86,7 @@ func _build_ui() -> void:
 	col.add_child(board)
 
 	var hint := Label.new()
-	hint.text = "點牌自動移動・點左上牌堆翻牌"
+	hint.text = "點牌選取 → 點目的地移動・連點兩下自動移動"
 	hint.add_theme_font_size_override("font_size", 20)
 	hint.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 	col.add_child(hint)
@@ -136,6 +136,7 @@ func _new_game() -> void:
 	finished = false
 	counted = false
 	undo_stack.clear()
+	board.clear_selected()
 	board.queue_redraw()
 	_refresh()
 	_save_state()
@@ -154,22 +155,26 @@ func _restore(state: Dictionary) -> void:
 	moves = int(state.get("moves", 0))
 	counted = bool(state.get("counted", false))
 	finished = false
+	board.clear_selected()
 	board.queue_redraw()
 	_refresh()
 
 
-# ---- 點擊處理 ----
+# ---- 點擊處理（兩段式：先選牌、再點目的地；點同一張第二次 = 快速自動移動）----
 
 func _on_target(zone: String, pile: int, index: int) -> void:
 	if finished:
 		return
 	match zone:
 		"stock":
+			board.clear_selected()
 			_tap_stock()
 		"waste":
-			_tap_waste()
+			_handle_waste_tap()
+		"foundation":
+			_handle_foundation_tap(pile)
 		"column":
-			_tap_column(pile, index)
+			_handle_column_tap(pile, index)
 
 
 func _tap_stock() -> void:
@@ -187,52 +192,115 @@ func _tap_stock() -> void:
 	_after_move()
 
 
-func _tap_waste() -> void:
+func _handle_waste_tap() -> void:
 	if board.waste.is_empty():
+		board.clear_selected()
 		return
-	var card := board.waste[-1]
-	var f := _find_foundation(card)
-	if f >= 0:
-		_push_undo()
-		board.waste.pop_back()
-		(board.foundations[f] as Array).append(card)
-		_after_move()
+	if board.selected_zone == "waste":
+		_smart_move_selected()  # 點第二次：快速自動移動
+	else:
+		board.set_selected("waste", 0, board.waste.size() - 1)
+
+
+## 點基礎堆：把選取中的單張牌移上去（合法才移）
+func _handle_foundation_tap(f: int) -> void:
+	var run := _selected_run()
+	if run.size() != 1:
 		return
-	var c := _find_column_for(card, -1)
-	if c >= 0:
+	if SolitaireLogic.can_foundation(int(run[0]), board.foundations[f]):
 		_push_undo()
-		board.waste.pop_back()
-		(board.columns[c] as Array).append(card)
-		board.face_up[c] += 1
+		_remove_selected_run()
+		(board.foundations[f] as Array).append(int(run[0]))
+		board.clear_selected()
 		_after_move()
 
 
-func _tap_column(col: int, index: int) -> void:
+func _handle_column_tap(col: int, index: int) -> void:
 	var column: Array = board.columns[col]
+	if board.selected_zone != "":
+		# 點同一張第二次：快速自動移動
+		if board.selected_zone == "column" and board.selected_pile == col \
+				and board.selected_index == index:
+			_smart_move_selected()
+			return
+		# 嘗試把選取的牌移到這一列
+		var run := _selected_run()
+		var from_this := board.selected_zone == "column" and board.selected_pile == col
+		if not run.is_empty() and not from_this and _can_drop_on_column(int(run[0]), col):
+			_push_undo()
+			_remove_selected_run()
+			(board.columns[col] as Array).append_array(run)
+			board.face_up[col] += run.size()
+			board.clear_selected()
+			_after_move()
+			return
+	# 不是合法目的地：改選這一列的牌（或取消選取）
 	if index < 0 or column.is_empty():
+		board.clear_selected()
 		return
 	var down_n := column.size() - board.face_up[col]
 	if index < down_n:
-		return  # 蓋著的牌不能動
-	# 單張（頂牌）優先試基礎堆
-	if index == column.size() - 1:
-		var f := _find_foundation(int(column[index]))
+		board.clear_selected()  # 蓋著的牌不能選
+		return
+	board.set_selected("column", col, index)
+
+
+## 目前選取的整段牌（無選取回傳空陣列）
+func _selected_run() -> Array:
+	if board.selected_zone == "waste":
+		return [] if board.waste.is_empty() else [board.waste[-1]]
+	if board.selected_zone == "column":
+		var column: Array = board.columns[board.selected_pile]
+		if board.selected_index < 0 or board.selected_index >= column.size():
+			return []
+		return column.slice(board.selected_index)
+	return []
+
+
+## 從來源堆移除目前選取的牌（呼叫前先 _push_undo）
+func _remove_selected_run() -> void:
+	if board.selected_zone == "waste":
+		board.waste.pop_back()
+	elif board.selected_zone == "column":
+		var col := board.selected_pile
+		var n: int = (board.columns[col] as Array).size() - board.selected_index
+		board.columns[col] = (board.columns[col] as Array).slice(0, board.selected_index)
+		_shrink_face_up(col, n)
+
+
+## 快速自動移動：單張優先基礎堆，其次找可疊的牌桌列
+func _smart_move_selected() -> void:
+	var run := _selected_run()
+	if run.is_empty():
+		board.clear_selected()
+		return
+	if run.size() == 1:
+		var f := _find_foundation(int(run[0]))
 		if f >= 0:
 			_push_undo()
-			(board.foundations[f] as Array).append(column.pop_back())
-			_shrink_face_up(col, 1)
+			_remove_selected_run()
+			(board.foundations[f] as Array).append(int(run[0]))
+			board.clear_selected()
 			_after_move()
 			return
-	# 整段搬到其他牌桌列
-	var run: Array = column.slice(index)
-	var dest := _find_column_for(int(run[0]), col)
-	if dest >= 0:
+	var exclude := board.selected_pile if board.selected_zone == "column" else -1
+	var c := _find_column_for(int(run[0]), exclude)
+	if c >= 0:
 		_push_undo()
-		board.columns[col] = column.slice(0, index)
-		(board.columns[dest] as Array).append_array(run)
-		board.face_up[dest] += run.size()
-		_shrink_face_up(col, run.size())
+		_remove_selected_run()
+		(board.columns[c] as Array).append_array(run)
+		board.face_up[c] += run.size()
+		board.clear_selected()
 		_after_move()
+		return
+	board.clear_selected()
+
+
+func _can_drop_on_column(head: int, col: int) -> bool:
+	var column: Array = board.columns[col]
+	if column.is_empty():
+		return SolitaireLogic.rank_of(head) == 12
+	return SolitaireLogic.can_stack(head, int(column[-1]))
 
 
 ## 從某列移走 n 張面朝上的牌後，維護 face_up 並自動翻開新頂牌
@@ -303,6 +371,7 @@ func _on_undo() -> void:
 	board.columns = snap["columns"]
 	board.face_up = _to_int_array(snap["face_up"])
 	moves += 1  # 復原也算一步，避免刷步數
+	board.clear_selected()
 	board.queue_redraw()
 	_refresh()
 	_save_state()
@@ -312,6 +381,7 @@ func _on_undo() -> void:
 func _auto_finish() -> void:
 	if finished or not _can_auto_finish():
 		return
+	board.clear_selected()
 	_push_undo()
 	var guard := 0
 	var progress := true

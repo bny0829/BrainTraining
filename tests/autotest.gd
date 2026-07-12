@@ -271,12 +271,34 @@ func _run() -> void:
 	# 復原
 	sol._on_undo()
 	_check(sol.board.waste.is_empty() and sol.board.stock.size() == 24, "接龍復原失敗")
-	# 再翻一張並嘗試點擊各列頂牌（規則保證不會崩潰）
+	# 兩段式選取：點列頂牌 → 選取；點庫存 → 翻牌並取消選取
 	sol._tap_stock()
+	sol._on_target("column", 6, 6)
+	_check(sol.board.selected_zone == "column" and sol.board.selected_pile == 6, "選取頂牌失敗")
+	sol._on_target("stock", 0, 0)
+	_check(sol.board.selected_zone == "", "翻牌未取消選取")
+	# 廢牌選取與連點快速移動（不保證有去處，但選取必須被清除且不崩潰）
+	sol._on_target("waste", 0, 0)
+	_check(sol.board.selected_zone == "waste", "選取廢牌失敗")
+	sol._on_target("waste", 0, 0)
+	_check(sol.board.selected_zone == "", "連點後未清除選取")
+	# 兩段式移動壓力測試：各列頂牌互點（規則層保證不會產生非法移動）
 	for c in 7:
-		var col_size: int = (sol.board.columns[c] as Array).size()
-		if col_size > 0:
-			sol._tap_column(c, col_size - 1)
+		var size_a: int = (sol.board.columns[c] as Array).size()
+		if size_a > 0:
+			sol._on_target("column", c, size_a - 1)
+		var d := (c + 1) % 7
+		var size_b: int = (sol.board.columns[d] as Array).size()
+		if size_b > 0:
+			sol._on_target("column", d, size_b - 1)
+	# 牌數守恆
+	var total := sol.board.stock.size() + sol.board.waste.size()
+	for f in 4:
+		total += (sol.board.foundations[f] as Array).size()
+	for c in 7:
+		total += (sol.board.columns[c] as Array).size()
+	_check(total == 52, "牌數守恆（%d）" % total)
+	sol.board.clear_selected()
 	await _shot("solitaire.png")
 	# 存檔續玩
 	var sol_stock := sol.board.stock.duplicate()
