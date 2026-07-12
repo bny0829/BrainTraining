@@ -27,6 +27,7 @@ func refresh() -> void:
 			continue
 		store[id] = Daily.today_id()
 		changed = true
+		Sfx.play("achievement")
 		_show_toast(def)
 		unlocked.emit(def)
 	if changed:

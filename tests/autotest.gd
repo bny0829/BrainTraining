@@ -182,6 +182,19 @@ func _run() -> void:
 	_check(int(ch["difficulty"]) >= 0 and int(ch["difficulty"]) <= 3, "每日挑戰難度無效")
 	print("[autotest] 每日輪替 OK")
 
+	# ---- 設定頁 ----
+	main.open_settings()
+	await tree.process_frame
+	_check(main.current_screen() is SettingsScreen, "設定畫面未建立")
+	Sfx.set_enabled(false)
+	_check(not Sfx.enabled(), "音效關閉未生效")
+	Sfx.set_enabled(true)
+	_check(Sfx.enabled(), "音效開啟未生效")
+	await _shot("settings.png")
+	main.goto_home()
+	await tree.process_frame
+	print("[autotest] 設定頁 OK")
+
 	print("[autotest] PASS")
 	get_tree().quit(0)
 

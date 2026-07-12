@@ -25,6 +25,8 @@ func _ready() -> void:
 	add_child(_screen_root)
 	get_viewport().size_changed.connect(_apply_safe_area)
 	_apply_safe_area()
+	# 全域按鈕音效：之後進場景樹的每顆按鈕都自動掛上
+	get_tree().node_added.connect(_on_node_added)
 	goto_home()
 	# 自動化測試掛勾：BRAINCLUB_AUTOTEST=1 時載入測試腳本
 	if OS.get_environment("BRAINCLUB_AUTOTEST") == "1":
@@ -87,8 +89,20 @@ func open_achievements() -> void:
 	_switch(AchievementScreen.new())
 
 
+func open_settings() -> void:
+	_switch(SettingsScreen.new())
+
+
+func _on_node_added(node: Node) -> void:
+	if node is Button:
+		(node as Button).pressed.connect(func() -> void: Sfx.play("tap"))
+
+
 func _switch(screen: Control) -> void:
 	if _current != null:
 		_current.queue_free()
 	_current = screen
 	_screen_root.add_child(screen)
+	# 淡入轉場
+	screen.modulate.a = 0.0
+	screen.create_tween().tween_property(screen, "modulate:a", 1.0, 0.15)

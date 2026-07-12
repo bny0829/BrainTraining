@@ -71,6 +71,11 @@ func _build_header(col: VBoxContainer) -> void:
 	AppTheme.style_secondary(ach)
 	ach.pressed.connect(func() -> void: Main.instance.open_achievements())
 	row.add_child(ach)
+	var settings := Button.new()
+	settings.text = "設定"
+	AppTheme.style_secondary(settings)
+	settings.pressed.connect(func() -> void: Main.instance.open_settings())
+	row.add_child(settings)
 
 	var subtitle := Label.new()
 	var streak := Daily.streak()

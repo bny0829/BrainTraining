@@ -176,6 +176,7 @@ func _on_cell_pressed(i: int) -> void:
 		undo_stack.pop_front()
 	ReversiLogic.apply_move(board.stones, ReversiLogic.BLACK, i, fl)
 	board.last_move = i
+	Sfx.play("stone")
 	_after_move()
 
 
@@ -183,6 +184,7 @@ func _apply_move(i: int) -> void:
 	var fl := ReversiLogic.flips_for(board.stones, turn, i)
 	ReversiLogic.apply_move(board.stones, turn, i, fl)
 	board.last_move = i
+	Sfx.play("stone")
 	_after_move()
 
 
@@ -262,6 +264,7 @@ func _finish() -> void:
 	finished = true
 	var c := ReversiLogic.count(board.stones)
 	var player_won := c[0] > c[1]
+	Sfx.play("win" if player_won else "lose")
 	SaveManager.record_result("reversi", difficulty, player_won)
 	SaveManager.set_in_progress({})
 	_refresh()

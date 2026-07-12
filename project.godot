@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="BrainClub"
+config/version="0.4.0"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -20,6 +21,7 @@ config/icon="res://icon.svg"
 SaveManager="*res://autoload/save_manager.gd"
 Daily="*res://autoload/daily.gd"
 Achievements="*res://autoload/achievements.gd"
+Sfx="*res://autoload/sfx.gd"
 
 [debug]
 
