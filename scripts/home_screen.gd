@@ -42,7 +42,7 @@ func _build_ui() -> void:
 	_build_stats(col)
 
 
-const GAME_NAMES := {"sudoku": "數獨", "gomoku": "五子棋", "reversi": "黑白棋"}
+const GAME_NAMES := {"sudoku": "數獨", "gomoku": "五子棋", "reversi": "黑白棋", "minesweeper": "踩地雷"}
 
 
 func _difficulty_label(game: String, d: int) -> String:
@@ -51,6 +51,8 @@ func _difficulty_label(game: String, d: int) -> String:
 			return "%s %s" % [SudokuLogic.DIFFICULTY_TEXT[d], SudokuLogic.DIFFICULTY_STARS[d]]
 		"gomoku":
 			return "%s %s" % [GomokuLogic.DIFFICULTY_TEXT[d], GomokuLogic.DIFFICULTY_STARS[d]]
+		"minesweeper":
+			return "%s %s" % [MinesweeperLogic.DIFFICULTY_TEXT[d], MinesweeperLogic.DIFFICULTY_STARS[d]]
 		_:
 			return "%s %s" % [ReversiLogic.DIFFICULTY_TEXT[d], ReversiLogic.DIFFICULTY_STARS[d]]
 
@@ -124,6 +126,9 @@ func _start_daily() -> void:
 			Main.instance.open_sudoku(cfg)
 		"gomoku":
 			Main.instance.open_gomoku(cfg)
+		"minesweeper":
+			cfg["seed"] = int(ch["seed"])
+			Main.instance.open_minesweeper(cfg)
 		_:
 			Main.instance.open_reversi(cfg)
 
@@ -144,7 +149,7 @@ func _build_continue_card(col: VBoxContainer) -> void:
 		mode_text = "每日挑戰・" + mode_text
 	var detail: String
 	match game:
-		"sudoku":
+		"sudoku", "minesweeper":
 			detail = SudokuScreen.format_time(int(st.get("seconds", 0)))
 		"gomoku":
 			detail = "第 %d 手" % ((st.get("moves", []) as Array).size() + 1)
@@ -167,6 +172,8 @@ func _build_continue_card(col: VBoxContainer) -> void:
 			btn.pressed.connect(func() -> void: Main.instance.open_sudoku({"mode": "resume"}))
 		"gomoku":
 			btn.pressed.connect(func() -> void: Main.instance.open_gomoku({"mode": "resume"}))
+		"minesweeper":
+			btn.pressed.connect(func() -> void: Main.instance.open_minesweeper({"mode": "resume"}))
 		_:
 			btn.pressed.connect(func() -> void: Main.instance.open_reversi({"mode": "resume"}))
 	inner.add_child(btn)
@@ -187,7 +194,9 @@ func _build_games(col: VBoxContainer) -> void:
 	_game_card(grid, "數獨", "4 種難度・筆記・提示", _pick_sudoku_difficulty)
 	_game_card(grid, "五子棋", "AI 對戰・4 級難度", _pick_gomoku_difficulty)
 	_game_card(grid, "黑白棋", "AI 對戰・合法手提示", _pick_reversi_difficulty)
-	_game_card(grid, "踩地雷", "即將推出", Callable())
+	_game_card(grid, "踩地雷", "首挖安全・長按插旗", _pick_minesweeper_difficulty)
+	_game_card(grid, "2048", "即將推出", Callable())
+	_game_card(grid, "接龍", "即將推出", Callable())
 
 
 func _game_card(grid: GridContainer, game_name: String, desc_text: String, on_start: Callable) -> void:
@@ -270,6 +279,25 @@ func _start_reversi(difficulty: int) -> void:
 	Main.instance.open_reversi({"mode": "normal", "difficulty": difficulty})
 
 
+func _pick_minesweeper_difficulty() -> void:
+	var buttons: Array = []
+	for d in MinesweeperLogic.Difficulty.values():
+		var cfg: Dictionary = MinesweeperLogic.CONFIG[d]
+		buttons.append({
+			"text": "%s %s（%d×%d・%d 雷）" % [
+				MinesweeperLogic.DIFFICULTY_TEXT[d], MinesweeperLogic.DIFFICULTY_STARS[d],
+				int(cfg["w"]), int(cfg["h"]), int(cfg["mines"]),
+			],
+			"action": _start_minesweeper.bind(d),
+		})
+	buttons.append({"text": "取消", "secondary": true})
+	OverlayDialog.open(self, "選擇難度", "", buttons)
+
+
+func _start_minesweeper(difficulty: int) -> void:
+	Main.instance.open_minesweeper({"mode": "normal", "difficulty": difficulty})
+
+
 func _build_stats(col: VBoxContainer) -> void:
 	var s := SaveManager.sudoku_stats()
 	var played := int(s.get("played", 0))
@@ -300,6 +328,16 @@ func _build_stats(col: VBoxContainer) -> void:
 			if wins > 0:
 				text += "\n%s 勝場：%d" % [ReversiLogic.DIFFICULTY_TEXT[d], wins]
 		_stats_card(col, "黑白棋戰績", text)
+
+	var ms := SaveManager.stats("minesweeper")
+	var ms_played := int(ms.get("played", 0))
+	if ms_played > 0:
+		var text := "掃雷成功 %d / %d 局" % [int(ms.get("won", 0)), ms_played]
+		for d in MinesweeperLogic.Difficulty.values():
+			var wins := int(ms.get("won_%d" % d, 0))
+			if wins > 0:
+				text += "\n%s 成功：%d" % [MinesweeperLogic.DIFFICULTY_TEXT[d], wins]
+		_stats_card(col, "踩地雷戰績", text)
 
 
 func _stats_card(col: VBoxContainer, title: String, text: String) -> void:

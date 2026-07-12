@@ -24,13 +24,20 @@ func _initialize() -> void:
 	var c := Achv.evaluate_all({"daily": {"best_streak": 7}})
 	_check(c.has("daily_3") and c.has("daily_7"), "連續天數成就")
 
-	# 三款遊戲都有成果 → all_games
+	# 四款遊戲都有成果 → all_games；只有三款則不解鎖
 	var d := Achv.evaluate_all({
 		"sudoku_stats": {"won": 1},
 		"gomoku_stats": {"won": 1, "won_3": 1},
 		"reversi_stats": {"won": 1},
+		"minesweeper_stats": {"won": 1, "won_3": 1},
 	})
-	_check(d.has("all_games") and d.has("gomoku_expert") and d.has("reversi_first"), "全能玩家與專家成就")
+	_check(d.has("all_games") and d.has("gomoku_expert") and d.has("minesweeper_expert"), "全能玩家與專家成就")
+	var d3 := Achv.evaluate_all({
+		"sudoku_stats": {"won": 1},
+		"gomoku_stats": {"won": 1},
+		"reversi_stats": {"won": 1},
+	})
+	_check(not d3.has("all_games"), "缺一款遊戲不解鎖全能玩家")
 
 	# 定義完整性：id 不重複、欄位齊全
 	var ids := {}
