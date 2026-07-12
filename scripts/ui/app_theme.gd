@@ -22,6 +22,11 @@ const STONE_BLACK := Color("#26262c")
 const STONE_WHITE := Color("#fbfbf9")
 const STONE_WHITE_EDGE := Color("#b5b5bf")
 
+# ---- 黑白棋色票 ----
+const REVERSI_BOARD := Color("#3f8f5f")
+const REVERSI_LINE := Color("#2e6b47")
+const REVERSI_HINT := Color(1.0, 1.0, 1.0, 0.35)
+
 # ---- 棋盤色票 ----
 const CELL_BG := Color("#ffffff")
 const CELL_SELECTED := Color("#c9d4f6")

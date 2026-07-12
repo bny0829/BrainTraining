@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 SaveManager="*res://autoload/save_manager.gd"
 Daily="*res://autoload/daily.gd"
+Achievements="*res://autoload/achievements.gd"
 
 [debug]
 

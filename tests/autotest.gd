@@ -131,8 +131,68 @@ func _run() -> void:
 	_check(g2.board.last_move == -1, "重新開始未清除最後一手標記")
 	print("[autotest] 五子棋 OK")
 
+	# ---- 黑白棋 ----
+	main.goto_home()
+	await tree.process_frame
+	main.open_reversi({"mode": "normal", "difficulty": ReversiLogic.Difficulty.BEGINNER})
+	await tree.process_frame
+	var rv := main.current_screen() as ReversiScreen
+	_check(rv != null, "黑白棋畫面未建立")
+	_check(not rv.board.hints.is_empty(), "開局未顯示合法手提示")
+
+	# 玩家下一個合法手，等 AI 回應
+	rv._on_cell_pressed(rv.board.hints[0])
+	await _wait_for_reversi_ai(rv)
+	var counts := ReversiLogic.count(rv.board.stones)
+	_check(counts[0] + counts[1] >= 6, "雙方落子後子數不足（%s）" % str(counts))
+	await _shot("reversi.png")
+
+	# 悔棋回到玩家落子前
+	rv._on_undo()
+	var counts2 := ReversiLogic.count(rv.board.stones)
+	_check(counts2[0] + counts2[1] == 4, "悔棋未還原至初始（%s）" % str(counts2))
+
+	# 續玩還原
+	rv._on_cell_pressed(rv.board.hints[0])
+	await _wait_for_reversi_ai(rv)
+	var saved_board: Array[int] = rv.board.stones.duplicate()
+	main.goto_home()
+	await tree.process_frame
+	main.open_reversi({"mode": "resume"})
+	await tree.process_frame
+	var rv2 := main.current_screen() as ReversiScreen
+	_check(rv2 != null, "黑白棋續玩畫面未建立")
+	_check(rv2.board.stones == saved_board, "黑白棋續玩還原失敗")
+	print("[autotest] 黑白棋 OK")
+
+	# ---- 成就 ----
+	SaveManager.record_result("gomoku", GomokuLogic.Difficulty.BEGINNER, true)
+	_check(Achievements.is_unlocked("gomoku_first"), "五子棋首勝成就未解鎖")
+	_check(not Achievements.is_unlocked("all_games"), "全能玩家不應提前解鎖")
+	main.open_achievements()
+	await tree.process_frame
+	_check(main.current_screen() is AchievementScreen, "成就畫面未建立")
+	_check(Achievements.unlocked_count() >= 1, "成就計數錯誤")
+	print("[autotest] 成就 OK")
+
+	# ---- 每日挑戰設定 ----
+	var ch := Daily.today_challenge()
+	_check(["sudoku", "gomoku", "reversi"].has(String(ch["game"])), "每日挑戰遊戲無效")
+	_check(int(ch["difficulty"]) >= 0 and int(ch["difficulty"]) <= 3, "每日挑戰難度無效")
+	print("[autotest] 每日輪替 OK")
+
 	print("[autotest] PASS")
 	get_tree().quit(0)
+
+
+func _wait_for_reversi_ai(rv: ReversiScreen) -> void:
+	var tries := 0
+	while rv._ai_pending or rv._ai_thread != null:
+		await get_tree().process_frame
+		tries += 1
+		if tries > 600:
+			_check(false, "等待黑白棋 AI 逾時")
+			return
 
 
 ## 等待五子棋 AI 執行緒完成並套用落子

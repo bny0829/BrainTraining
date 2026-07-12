@@ -42,12 +42,35 @@ func _build_ui() -> void:
 	_build_stats(col)
 
 
+const GAME_NAMES := {"sudoku": "數獨", "gomoku": "五子棋", "reversi": "黑白棋"}
+
+
+func _difficulty_label(game: String, d: int) -> String:
+	match game:
+		"sudoku":
+			return "%s %s" % [SudokuLogic.DIFFICULTY_TEXT[d], SudokuLogic.DIFFICULTY_STARS[d]]
+		"gomoku":
+			return "%s %s" % [GomokuLogic.DIFFICULTY_TEXT[d], GomokuLogic.DIFFICULTY_STARS[d]]
+		_:
+			return "%s %s" % [ReversiLogic.DIFFICULTY_TEXT[d], ReversiLogic.DIFFICULTY_STARS[d]]
+
+
 func _build_header(col: VBoxContainer) -> void:
+	var row := HBoxContainer.new()
+	col.add_child(row)
 	var title := Label.new()
 	title.text = "Brain Club"
 	title.add_theme_font_size_override("font_size", 52)
 	title.add_theme_color_override("font_color", AppTheme.PRIMARY_DARK)
-	col.add_child(title)
+	row.add_child(title)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+	var ach := Button.new()
+	ach.text = "成就 %d/%d" % [Achievements.unlocked_count(), Achievements.total_count()]
+	AppTheme.style_secondary(ach)
+	ach.pressed.connect(func() -> void: Main.instance.open_achievements())
+	row.add_child(ach)
 
 	var subtitle := Label.new()
 	var streak := Daily.streak()
@@ -64,10 +87,12 @@ func _build_daily_card(col: VBoxContainer) -> void:
 	head.add_theme_font_size_override("font_size", 34)
 	inner.add_child(head)
 
-	var d := Daily.today_difficulty()
+	var ch := Daily.today_challenge()
 	var desc := Label.new()
-	desc.text = "%s　數獨・%s %s" % [
-		Daily.today_id(), SudokuLogic.DIFFICULTY_TEXT[d], SudokuLogic.DIFFICULTY_STARS[d]
+	desc.text = "%s　%s・%s" % [
+		Daily.today_id(),
+		GAME_NAMES[String(ch["game"])],
+		_difficulty_label(String(ch["game"]), int(ch["difficulty"])),
 	]
 	desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 	inner.add_child(desc)
@@ -81,20 +106,27 @@ func _build_daily_card(col: VBoxContainer) -> void:
 	else:
 		var btn := Button.new()
 		btn.text = "開始挑戰"
-		btn.pressed.connect(func() -> void:
-			Main.instance.open_sudoku({
-				"mode": "daily",
-				"difficulty": Daily.today_difficulty(),
-				"seed": Daily.today_seed(),
-			})
-		)
+		btn.pressed.connect(_start_daily)
 		inner.add_child(btn)
+
+
+func _start_daily() -> void:
+	var ch := Daily.today_challenge()
+	var cfg := {"mode": "daily", "difficulty": int(ch["difficulty"])}
+	match String(ch["game"]):
+		"sudoku":
+			cfg["seed"] = int(ch["seed"])
+			Main.instance.open_sudoku(cfg)
+		"gomoku":
+			Main.instance.open_gomoku(cfg)
+		_:
+			Main.instance.open_reversi(cfg)
 
 
 func _build_continue_card(col: VBoxContainer) -> void:
 	var st := SaveManager.get_in_progress()
 	var game := String(st.get("game", ""))
-	if game != "sudoku" and game != "gomoku":
+	if not GAME_NAMES.has(game):
 		return
 	var inner := _card(col)
 	var head := Label.new()
@@ -102,33 +134,36 @@ func _build_continue_card(col: VBoxContainer) -> void:
 	head.add_theme_font_size_override("font_size", 34)
 	inner.add_child(head)
 
+	var mode_text: String = GAME_NAMES[game]
+	if String(st.get("mode", "")) == "daily":
+		mode_text = "每日挑戰・" + mode_text
+	var detail: String
+	match game:
+		"sudoku":
+			detail = SudokuScreen.format_time(int(st.get("seconds", 0)))
+		"gomoku":
+			detail = "第 %d 手" % ((st.get("moves", []) as Array).size() + 1)
+		_:
+			var c := ReversiLogic.count(ReversiScreen._to_int_array(st.get("board", [])))
+			detail = "黑 %d：%d 白" % [c[0], c[1]]
 	var desc := Label.new()
-	if game == "sudoku":
-		var mode_text := "每日挑戰" if String(st.get("mode", "")) == "daily" else "數獨"
-		desc.text = "%s・%s・%s" % [
-			mode_text,
-			SudokuLogic.DIFFICULTY_TEXT[int(st.get("difficulty", 0))],
-			SudokuScreen.format_time(int(st.get("seconds", 0))),
-		]
-	else:
-		var move_count: int = (st.get("moves", []) as Array).size()
-		desc.text = "五子棋・%s・第 %d 手" % [
-			GomokuLogic.DIFFICULTY_TEXT[int(st.get("difficulty", 0))],
-			move_count + 1,
-		]
+	desc.text = "%s・%s・%s" % [
+		mode_text,
+		_difficulty_label(game, int(st.get("difficulty", 0))).split(" ")[0],
+		detail,
+	]
 	desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 	inner.add_child(desc)
 
 	var btn := Button.new()
 	btn.text = "繼續"
-	if game == "sudoku":
-		btn.pressed.connect(func() -> void:
-			Main.instance.open_sudoku({"mode": "resume"})
-		)
-	else:
-		btn.pressed.connect(func() -> void:
-			Main.instance.open_gomoku({"mode": "resume"})
-		)
+	match game:
+		"sudoku":
+			btn.pressed.connect(func() -> void: Main.instance.open_sudoku({"mode": "resume"}))
+		"gomoku":
+			btn.pressed.connect(func() -> void: Main.instance.open_gomoku({"mode": "resume"}))
+		_:
+			btn.pressed.connect(func() -> void: Main.instance.open_reversi({"mode": "resume"}))
 	inner.add_child(btn)
 
 
@@ -146,7 +181,7 @@ func _build_games(col: VBoxContainer) -> void:
 
 	_game_card(grid, "數獨", "4 種難度・筆記・提示", _pick_sudoku_difficulty)
 	_game_card(grid, "五子棋", "AI 對戰・4 級難度", _pick_gomoku_difficulty)
-	_game_card(grid, "黑白棋", "即將推出", Callable())
+	_game_card(grid, "黑白棋", "AI 對戰・合法手提示", _pick_reversi_difficulty)
 	_game_card(grid, "踩地雷", "即將推出", Callable())
 
 
@@ -215,6 +250,21 @@ func _start_gomoku(difficulty: int) -> void:
 	Main.instance.open_gomoku({"mode": "normal", "difficulty": difficulty})
 
 
+func _pick_reversi_difficulty() -> void:
+	var buttons: Array = []
+	for d in ReversiLogic.Difficulty.values():
+		buttons.append({
+			"text": "%s %s" % [ReversiLogic.DIFFICULTY_TEXT[d], ReversiLogic.DIFFICULTY_STARS[d]],
+			"action": _start_reversi.bind(d),
+		})
+	buttons.append({"text": "取消", "secondary": true})
+	OverlayDialog.open(self, "選擇 AI 難度", "你執黑棋先手", buttons)
+
+
+func _start_reversi(difficulty: int) -> void:
+	Main.instance.open_reversi({"mode": "normal", "difficulty": difficulty})
+
+
 func _build_stats(col: VBoxContainer) -> void:
 	var s := SaveManager.sudoku_stats()
 	var played := int(s.get("played", 0))
@@ -235,6 +285,16 @@ func _build_stats(col: VBoxContainer) -> void:
 			if wins > 0:
 				text += "\n%s 勝場：%d" % [GomokuLogic.DIFFICULTY_TEXT[d], wins]
 		_stats_card(col, "五子棋戰績", text)
+
+	var r := SaveManager.stats("reversi")
+	var r_played := int(r.get("played", 0))
+	if r_played > 0:
+		var text := "勝 %d / %d 局" % [int(r.get("won", 0)), r_played]
+		for d in ReversiLogic.Difficulty.values():
+			var wins := int(r.get("won_%d" % d, 0))
+			if wins > 0:
+				text += "\n%s 勝場：%d" % [ReversiLogic.DIFFICULTY_TEXT[d], wins]
+		_stats_card(col, "黑白棋戰績", text)
 
 
 func _stats_card(col: VBoxContainer, title: String, text: String) -> void:

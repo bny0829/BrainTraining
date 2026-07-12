@@ -6,16 +6,22 @@ extends Node
 const SAVE_PATH := "user://save.json"
 
 var data: Dictionary = {}
+## 實際使用的存檔路徑：自動化測試以 BRAINCLUB_SAVE 環境變數改用獨立檔案，
+## 避免污染玩家的真實進度
+var _path := SAVE_PATH
 
 
 func _ready() -> void:
+	var override := OS.get_environment("BRAINCLUB_SAVE")
+	if override != "":
+		_path = override
 	reload()
 
 
 func reload() -> void:
 	data = {}
-	if FileAccess.file_exists(SAVE_PATH):
-		var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if FileAccess.file_exists(_path):
+		var f := FileAccess.open(_path, FileAccess.READ)
 		if f != null:
 			var parsed: Variant = JSON.parse_string(f.get_as_text())
 			if parsed is Dictionary:
@@ -23,7 +29,7 @@ func reload() -> void:
 
 
 func save() -> void:
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(_path, FileAccess.WRITE)
 	if f != null:
 		f.store_string(JSON.stringify(data, "\t"))
 
@@ -61,6 +67,7 @@ func record_result(game: String, difficulty: int, won: bool) -> void:
 		var key := "won_%d" % difficulty
 		s[key] = int(s.get(key, 0)) + 1
 	save()
+	Achievements.refresh()
 
 
 func stats(game: String) -> Dictionary:
@@ -79,6 +86,7 @@ func record_sudoku_result(difficulty: int, seconds: int, won: bool) -> void:
 		if best == 0 or seconds < best:
 			s[key] = seconds
 	save()
+	Achievements.refresh()
 
 
 func sudoku_stats() -> Dictionary:

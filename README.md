@@ -2,7 +2,7 @@
 
 一人團隊長期經營的**益智遊戲平台**：不是單一數獨 App，而是一個所有遊戲共用「每日挑戰、存檔、統計、UI 風格」的平台，每次更新新增一款經典遊戲。
 
-**目前版本：v0.2** — 平台首頁 + 數獨（4 種難度、筆記、提示、每日挑戰）+ 五子棋（AI 對戰 4 級難度、悔棋、續玩）。
+**目前版本：v0.3** — 平台首頁 + 數獨 + 五子棋 + 黑白棋（皆含 4 級 AI 難度）+ 成就系統 + 每日挑戰三遊戲輪替。
 
 ## 如何執行
 
@@ -25,10 +25,17 @@ C:\Godot_v4.7-stable_win64.exe --headless --path . --script res://tests/test_sud
 # 五子棋邏輯單元測試（勝負判定、AI 即勝/防守、AI 對弈、效能）
 C:\Godot_v4.7-stable_win64.exe --headless --path . --script res://tests/test_gomoku_logic.gd
 
-# 全流程自動化測試（模擬玩家操作首頁與數獨）
+# 黑白棋邏輯單元測試（合法手、翻轉、跳過與終局、AI 對弈、效能）
+C:\Godot_v4.7-stable_win64.exe --headless --path . --script res://tests/test_reversi_logic.gd
+
+# 成就判定單元測試
+C:\Godot_v4.7-stable_win64.exe --headless --path . --script res://tests/test_achievements.gd
+
+# 全流程自動化測試（模擬玩家操作；BRAINCLUB_SAVE 讓測試用獨立存檔，不污染真實進度）
 $env:BRAINCLUB_AUTOTEST = "1"
+$env:BRAINCLUB_SAVE = "user://save_autotest.json"
 C:\Godot_v4.7-stable_win64.exe --headless --path .
-Remove-Item Env:BRAINCLUB_AUTOTEST
+Remove-Item Env:BRAINCLUB_AUTOTEST, Env:BRAINCLUB_SAVE
 ```
 
 兩者最後都會印出 `PASS`，結束代碼 0。
@@ -44,6 +51,8 @@ Remove-Item Env:BRAINCLUB_AUTOTEST
 | `scripts/ui/` | 共用 UI：色票主題（`AppTheme`）、對話框（`OverlayDialog`） |
 | `scripts/sudoku/` | 數獨：核心演算法、棋盤繪製、遊戲畫面 |
 | `scripts/gomoku/` | 五子棋：AI（Negamax + Alpha-Beta）、棋盤繪製、遊戲畫面 |
+| `scripts/reversi/` | 黑白棋：AI（位置權重 + 行動力）、棋盤繪製、遊戲畫面 |
+| `scripts/achievement_defs.gd` | 成就定義與判定（純函式）；`achievement_screen.gd` 為清單畫面 |
 | `tests/` | 單元測試與自動化操作測試 |
 | `docs/` | 專案文件（見下） |
 
@@ -56,6 +65,7 @@ Remove-Item Env:BRAINCLUB_AUTOTEST
 | [03_Game_Design_Sudoku.md](docs/03_Game_Design_Sudoku.md) | 數獨玩法規格與每日挑戰設計 |
 | [04_Conventions.md](docs/04_Conventions.md) | 程式碼規範與專案原則 |
 | [05_Game_Design_Gomoku.md](docs/05_Game_Design_Gomoku.md) | 五子棋玩法規格與 AI 設計 |
+| [06_Game_Design_Reversi.md](docs/06_Game_Design_Reversi.md) | 黑白棋玩法規格與 AI 設計 |
 
 ## 技術選型
 
