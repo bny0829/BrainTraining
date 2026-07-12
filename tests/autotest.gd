@@ -219,6 +219,46 @@ func _run() -> void:
 	_check(msw2.board.flagged[covered], "旗標未還原")
 	print("[autotest] 踩地雷 OK")
 
+	# ---- 2048 ----
+	main.open_game2048({"mode": "normal"})
+	await tree.process_frame
+	var g48 := main.current_screen() as Game2048Screen
+	_check(g48 != null, "2048 畫面未建立")
+	var tiles := 0
+	for v in g48.board.grid:
+		if v != 0:
+			tiles += 1
+	_check(tiles == 2, "開局應有 2 個磚塊（%d）" % tiles)
+	# 往四個方向各滑一次，至少會有一次有效移動
+	for dir in [0, 1, 2, 3]:
+		g48._move(dir)
+	var tiles2 := 0
+	for v in g48.board.grid:
+		if v != 0:
+			tiles2 += 1
+	_check(tiles2 > 2, "滑動後未生成新磚")
+	# 復原
+	if not g48._undo_snapshot.is_empty():
+		var before_undo: Array[int] = g48.board.grid.duplicate()
+		g48._on_undo()
+		_check(g48.board.grid != before_undo, "復原未改變盤面")
+	await _shot("game2048.png")
+	# 存檔續玩
+	var saved_grid: Array[int] = g48.board.grid.duplicate()
+	var saved_score := g48.score
+	main.goto_home()
+	await tree.process_frame
+	main.open_game2048({"mode": "resume"})
+	await tree.process_frame
+	var g48b := main.current_screen() as Game2048Screen
+	_check(g48b != null, "2048 續玩畫面未建立")
+	_check(g48b.board.grid == saved_grid and g48b.score == saved_score, "2048 續玩還原失敗")
+	# 成就：模擬最佳磚塊紀錄
+	SaveManager.section("game2048_stats")["best_tile"] = 512
+	Achievements.refresh()
+	_check(Achievements.is_unlocked("t2048_512"), "2048 成就未解鎖")
+	print("[autotest] 2048 OK")
+
 	# ---- 設定頁 ----
 	main.open_settings()
 	await tree.process_frame

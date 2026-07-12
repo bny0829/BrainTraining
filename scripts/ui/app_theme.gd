@@ -22,6 +22,18 @@ const STONE_BLACK := Color("#26262c")
 const STONE_WHITE := Color("#fbfbf9")
 const STONE_WHITE_EDGE := Color("#b5b5bf")
 
+# ---- 2048 色票 ----
+const T2048_BOARD := Color("#cbc2b0")
+const T2048_SLOT := Color("#ded5c5")
+const T2048_TEXT_DARK := Color("#776e65")
+const T2048_SUPER := Color("#3c3a32")
+const T2048_TILES := {
+	2: Color("#eee4da"), 4: Color("#ede0c8"), 8: Color("#f2b179"),
+	16: Color("#f59563"), 32: Color("#f67c5f"), 64: Color("#f65e3b"),
+	128: Color("#edcf72"), 256: Color("#edcc61"), 512: Color("#edc850"),
+	1024: Color("#edc53f"), 2048: Color("#edc22e"),
+}
+
 # ---- 踩地雷色票 ----
 const MINE_COVERED := Color("#a9b6d3")
 const MINE_COVERED_EDGE := Color("#8d9cc0")

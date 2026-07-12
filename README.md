@@ -2,7 +2,7 @@
 
 一人團隊長期經營的**益智遊戲平台**：不是單一數獨 App，而是一個所有遊戲共用「每日挑戰、存檔、統計、UI 風格」的平台，每次更新新增一款經典遊戲。
 
-**目前版本：v0.5** — 四款遊戲（數獨、五子棋、黑白棋、踩地雷）+ 成就（12 個）+ 每日挑戰四遊戲輪替 + 音效 + 設定頁 + Android 上架準備（簽章、圖示、版號）。
+**目前版本：v0.6** — 五款遊戲（數獨、五子棋、黑白棋、踩地雷、2048）+ 成就（14 個）+ 每日挑戰輪替 + 音效 + 設定頁 + Google Play 封閉測試中。
 
 ## 如何執行
 
@@ -31,6 +31,9 @@ C:\Godot_v4.7-stable_win64.exe --headless --path . --script res://tests/test_rev
 # 踩地雷邏輯單元測試（佈雷、首挖安全、連鎖、勝利判定）
 C:\Godot_v4.7-stable_win64.exe --headless --path . --script res://tests/test_minesweeper_logic.gd
 
+# 2048 邏輯單元測試（合併規則、四方向、死局判定）
+C:\Godot_v4.7-stable_win64.exe --headless --path . --script res://tests/test_game2048_logic.gd
+
 # 成就判定單元測試
 C:\Godot_v4.7-stable_win64.exe --headless --path . --script res://tests/test_achievements.gd
 
@@ -56,6 +59,7 @@ Remove-Item Env:BRAINCLUB_AUTOTEST, Env:BRAINCLUB_SAVE
 | `scripts/gomoku/` | 五子棋：AI（Negamax + Alpha-Beta）、棋盤繪製、遊戲畫面 |
 | `scripts/reversi/` | 黑白棋：AI（位置權重 + 行動力）、棋盤繪製、遊戲畫面 |
 | `scripts/minesweeper/` | 踩地雷：佈雷邏輯（首挖安全）、棋盤繪製（含長按）、遊戲畫面 |
+| `scripts/game2048/` | 2048：合併邏輯、棋盤繪製（滑動手勢）、遊戲畫面 |
 | `scripts/achievement_defs.gd` | 成就定義與判定（純函式）；`achievement_screen.gd` 為清單畫面 |
 | `tests/` | 單元測試與自動化操作測試 |
 | `tools/` | 圖示與商店素材產生器 |
@@ -74,6 +78,7 @@ Remove-Item Env:BRAINCLUB_AUTOTEST, Env:BRAINCLUB_SAVE
 | [06_Game_Design_Reversi.md](docs/06_Game_Design_Reversi.md) | 黑白棋玩法規格與 AI 設計 |
 | [07_Game_Design_Minesweeper.md](docs/07_Game_Design_Minesweeper.md) | 踩地雷玩法規格 |
 | [08_Play_Release_Guide.md](docs/08_Play_Release_Guide.md) | Google Play 上架指南（素材、文案、封測流程） |
+| [09_Game_Design_2048.md](docs/09_Game_Design_2048.md) | 2048 玩法規格 |
 
 ## 技術選型
 

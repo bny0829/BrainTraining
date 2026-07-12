@@ -42,7 +42,10 @@ func _build_ui() -> void:
 	_build_stats(col)
 
 
-const GAME_NAMES := {"sudoku": "數獨", "gomoku": "五子棋", "reversi": "黑白棋", "minesweeper": "踩地雷"}
+const GAME_NAMES := {
+	"sudoku": "數獨", "gomoku": "五子棋", "reversi": "黑白棋",
+	"minesweeper": "踩地雷", "game2048": "2048",
+}
 
 
 func _difficulty_label(game: String, d: int) -> String:
@@ -153,15 +156,21 @@ func _build_continue_card(col: VBoxContainer) -> void:
 			detail = SudokuScreen.format_time(int(st.get("seconds", 0)))
 		"gomoku":
 			detail = "第 %d 手" % ((st.get("moves", []) as Array).size() + 1)
+		"game2048":
+			detail = "分數 %d" % int(st.get("score", 0))
 		_:
 			var c := ReversiLogic.count(ReversiScreen._to_int_array(st.get("board", [])))
 			detail = "黑 %d：%d 白" % [c[0], c[1]]
 	var desc := Label.new()
-	desc.text = "%s・%s・%s" % [
-		mode_text,
-		_difficulty_label(game, int(st.get("difficulty", 0))).split(" ")[0],
-		detail,
-	]
+	if game == "game2048":
+		# 2048 沒有難度分級
+		desc.text = "%s・%s" % [mode_text, detail]
+	else:
+		desc.text = "%s・%s・%s" % [
+			mode_text,
+			_difficulty_label(game, int(st.get("difficulty", 0))).split(" ")[0],
+			detail,
+		]
 	desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 	inner.add_child(desc)
 
@@ -174,6 +183,8 @@ func _build_continue_card(col: VBoxContainer) -> void:
 			btn.pressed.connect(func() -> void: Main.instance.open_gomoku({"mode": "resume"}))
 		"minesweeper":
 			btn.pressed.connect(func() -> void: Main.instance.open_minesweeper({"mode": "resume"}))
+		"game2048":
+			btn.pressed.connect(func() -> void: Main.instance.open_game2048({"mode": "resume"}))
 		_:
 			btn.pressed.connect(func() -> void: Main.instance.open_reversi({"mode": "resume"}))
 	inner.add_child(btn)
@@ -195,7 +206,7 @@ func _build_games(col: VBoxContainer) -> void:
 	_game_card(grid, "五子棋", "AI 對戰・4 級難度", _pick_gomoku_difficulty)
 	_game_card(grid, "黑白棋", "AI 對戰・合法手提示", _pick_reversi_difficulty)
 	_game_card(grid, "踩地雷", "首挖安全・長按插旗", _pick_minesweeper_difficulty)
-	_game_card(grid, "2048", "即將推出", Callable())
+	_game_card(grid, "2048", "滑動合併・挑戰高分", _start_2048)
 	_game_card(grid, "接龍", "即將推出", Callable())
 
 
@@ -298,6 +309,10 @@ func _start_minesweeper(difficulty: int) -> void:
 	Main.instance.open_minesweeper({"mode": "normal", "difficulty": difficulty})
 
 
+func _start_2048() -> void:
+	Main.instance.open_game2048({"mode": "normal"})
+
+
 func _build_stats(col: VBoxContainer) -> void:
 	var s := SaveManager.sudoku_stats()
 	var played := int(s.get("played", 0))
@@ -328,6 +343,13 @@ func _build_stats(col: VBoxContainer) -> void:
 			if wins > 0:
 				text += "\n%s 勝場：%d" % [ReversiLogic.DIFFICULTY_TEXT[d], wins]
 		_stats_card(col, "黑白棋戰績", text)
+
+	var t := SaveManager.stats("game2048")
+	if int(t.get("best_score", 0)) > 0:
+		var text := "最高分：%d・最大磚塊：%d" % [int(t.get("best_score", 0)), int(t.get("best_tile", 0))]
+		if int(t.get("played", 0)) > 0:
+			text += "\n完整場數：%d" % int(t.get("played", 0))
+		_stats_card(col, "2048 戰績", text)
 
 	var ms := SaveManager.stats("minesweeper")
 	var ms_played := int(ms.get("played", 0))
