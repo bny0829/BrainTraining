@@ -7,13 +7,16 @@
 ```
 main.tscn（唯一場景）
 └── Main（scripts/main.gd）畫面路由 + 套用 AppTheme
-    ├── HomeScreen   首頁（每日挑戰、續玩、遊戲清單、戰績）
-    ├── SudokuScreen 數獨畫面
-    └── GomokuScreen 五子棋畫面（之後：ReversiScreen…）
+    ├── HomeScreen        首頁（每日挑戰、續玩、遊戲清單、成就入口、戰績）
+    ├── SudokuScreen      數獨
+    ├── GomokuScreen      五子棋
+    ├── ReversiScreen     黑白棋
+    └── AchievementScreen 成就清單
 
 Autoload（全域單例）
-├── SaveManager  user://save.json 讀寫、戰績、進行中遊戲
-└── Daily        每日挑戰種子、難度輪替、連續天數
+├── SaveManager   user://save.json 讀寫、戰績、進行中遊戲（BRAINCLUB_SAVE 可換測試存檔）
+├── Daily         每日挑戰輪替表（星期→遊戲+難度）、種子、連續天數
+└── Achievements  成就解鎖紀錄與通知（定義在 scripts/achievement_defs.gd，純函式可測試）
 ```
 
 設計決策：
@@ -88,9 +91,16 @@ Negamax + Alpha-Beta（難度 = 深度 0～3 + 候選寬度 + 隨機性）
 
 黑白棋（v0.3）重用同一結構：換走子規則（夾吃）與評估函數（角/邊權重 + 行動力），搜尋框架不變。之後視需要升級 MCTS。
 
-## 五之一、每日挑戰的多遊戲輪替（v0.3 規劃）
+## 五之一、每日挑戰的多遊戲輪替（v0.3 已實作）
 
-`Daily` 目前固定出數獨。多遊戲後改為：星期幾 → (遊戲, 難度) 表，`in_progress.date` 過期作廢機制不變。
+`Daily.ROTATION`：星期幾 → { game, difficulty }。數獨看「日期種子同題」、棋類看「當日指定難度獲勝」；`in_progress.date` 過期作廢機制不變。週六為數獨專家（週末 Boss）。
+
+## 五之二、成就系統（v0.3 已實作）
+
+- 定義：`scripts/achievement_defs.gd`，宣告式條件（存檔[section][key] ≥ min，可 AND 多條件），純函式可 headless 測試。
+- 解鎖：`Achievements.refresh()` 在戰績寫入與每日完成後被呼叫；新解鎖存入存檔 `achievements` section（id → 日期）並彈出頂部通知。
+- 新增成就 = 在 `all_defs()` 加一筆資料，不用動任何流程。
+- **注意**：autoload 內的程式不能被 `--script` 測試 preload（autoload 識別字在該模式下無法編譯）——可測試的邏輯一律放 `scripts/` 純類別。
 
 ## 六、測試
 

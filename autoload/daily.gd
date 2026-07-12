@@ -1,17 +1,17 @@
 extends Node
 ## 每日挑戰（Autoload：Daily）
 ## 以日期作為亂數種子 → 全世界玩家同一天拿到同一題，完全離線、零伺服器成本。
-## 未來所有遊戲的每日挑戰都走這套種子與連續天數（streak）機制。
+## v0.3 起每天輪替不同遊戲：數獨看種子、棋類看「當日指定難度獲勝」。
 
 # Time.get_date_dict_from_system().weekday：0 = 星期日
-const WEEKDAY_DIFFICULTY := [
-	SudokuLogic.Difficulty.MEDIUM,  # 日
-	SudokuLogic.Difficulty.EASY,    # 一
-	SudokuLogic.Difficulty.MEDIUM,  # 二
-	SudokuLogic.Difficulty.MEDIUM,  # 三
-	SudokuLogic.Difficulty.HARD,    # 四
-	SudokuLogic.Difficulty.HARD,    # 五
-	SudokuLogic.Difficulty.EXPERT,  # 六
+const ROTATION := [
+	{"game": "reversi", "difficulty": ReversiLogic.Difficulty.NORMAL},  # 日
+	{"game": "sudoku", "difficulty": SudokuLogic.Difficulty.EASY},      # 一
+	{"game": "gomoku", "difficulty": GomokuLogic.Difficulty.NORMAL},    # 二
+	{"game": "sudoku", "difficulty": SudokuLogic.Difficulty.MEDIUM},    # 三
+	{"game": "reversi", "difficulty": ReversiLogic.Difficulty.HARD},    # 四
+	{"game": "gomoku", "difficulty": GomokuLogic.Difficulty.HARD},      # 五
+	{"game": "sudoku", "difficulty": SudokuLogic.Difficulty.EXPERT},    # 六（週末 Boss）
 ]
 
 
@@ -25,8 +25,14 @@ func today_seed() -> int:
 	return d.year * 10000 + d.month * 100 + d.day
 
 
-func today_difficulty() -> int:
-	return WEEKDAY_DIFFICULTY[Time.get_date_dict_from_system().weekday]
+## 今日挑戰內容：{ "game": String, "difficulty": int, "seed": int }
+func today_challenge() -> Dictionary:
+	var rot: Dictionary = ROTATION[Time.get_date_dict_from_system().weekday]
+	return {
+		"game": String(rot["game"]),
+		"difficulty": int(rot["difficulty"]),
+		"seed": today_seed(),
+	}
 
 
 func is_completed_today() -> bool:
@@ -44,6 +50,7 @@ func mark_completed() -> void:
 	d["best_streak"] = maxi(int(d.get("best_streak", 0)), int(d["streak"]))
 	d["last_completed"] = today_id()
 	SaveManager.save()
+	Achievements.refresh()
 
 
 ## 目前有效的連續天數（昨天或今天有完成才算延續）

@@ -45,6 +45,16 @@ func open_gomoku(config: Dictionary) -> void:
 	_switch(screen)
 
 
+func open_reversi(config: Dictionary) -> void:
+	var screen := ReversiScreen.new()
+	screen.config = config
+	_switch(screen)
+
+
+func open_achievements() -> void:
+	_switch(AchievementScreen.new())
+
+
 func _switch(screen: Control) -> void:
 	if _current != null:
 		_current.queue_free()

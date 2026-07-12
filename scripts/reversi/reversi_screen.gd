@@ -1,6 +1,7 @@
-class_name GomokuScreen
+class_name ReversiScreen
 extends Control
-## 五子棋遊戲畫面：玩家（黑）對 AI（白），AI 在背景執行緒思考避免卡住 UI。
+## 黑白棋遊戲畫面：玩家（黑）對 AI（白），含跳過回合處理、合法手提示、悔棋與續玩。
+## AI 沿用五子棋的背景執行緒模式。
 ## config：
 ##   { "mode": "normal", "difficulty": int }  新對局
 ##   { "mode": "daily", "difficulty": int }   每日挑戰（獲勝才算完成）
@@ -9,13 +10,15 @@ extends Control
 var config: Dictionary = {}
 
 var mode := "normal"
-var difficulty: int = GomokuLogic.Difficulty.BEGINNER
-var moves: Array[int] = []  # 依序的落子（偶數手 = 黑 = 玩家）
+var difficulty: int = ReversiLogic.Difficulty.BEGINNER
+var turn: int = ReversiLogic.BLACK
 var finished := false
+var undo_stack: Array = []
 
-var board: GomokuBoard
+var board: ReversiBoard
 var _title_label: Label
 var _info_label: Label
+var _score_label: Label
 var _undo_btn: Button
 
 var _ai_thread: Thread = null
@@ -28,12 +31,11 @@ func _ready() -> void:
 	if mode == "resume":
 		_restore(SaveManager.get_in_progress())
 	else:
-		difficulty = int(config.get("difficulty", GomokuLogic.Difficulty.BEGINNER))
+		difficulty = int(config.get("difficulty", ReversiLogic.Difficulty.BEGINNER))
 		_new_game()
 
 
 func _exit_tree() -> void:
-	# 離開畫面時必須等 AI 執行緒結束，否則會洩漏
 	if _ai_thread != null and _ai_thread.is_started():
 		_ai_thread.wait_to_finish()
 		_ai_thread = null
@@ -44,8 +46,13 @@ func _process(_delta: float) -> void:
 		var mv := int(_ai_thread.wait_to_finish())
 		_ai_thread = null
 		_ai_pending = false
-		if not finished and mv >= 0:
+		if finished:
+			return
+		if mv >= 0:
 			_apply_move(mv)
+		else:
+			# 理論上不會發生（輪到 AI 前已檢查有合法手），保險處理
+			_after_move()
 
 
 # ---- UI 建構 ----
@@ -61,7 +68,6 @@ func _build_ui() -> void:
 	col.add_theme_constant_override("separation", 16)
 	margin.add_child(col)
 
-	# 頂列：返回 / 標題
 	var top := HBoxContainer.new()
 	col.add_child(top)
 	var back := Button.new()
@@ -74,30 +80,32 @@ func _build_ui() -> void:
 	_title_label.add_theme_font_size_override("font_size", 34)
 	top.add_child(_title_label)
 	top.add_child(_spacer())
-	# 佔位讓標題置中（與返回鈕等寬的透明按鈕）
 	var ghost := Button.new()
 	ghost.text = "← 返回"
 	ghost.modulate = Color(1, 1, 1, 0)
 	ghost.disabled = true
 	top.add_child(ghost)
 
-	# 資訊列：回合狀態 / 手數
+	var info := HBoxContainer.new()
+	col.add_child(info)
 	_info_label = Label.new()
 	_info_label.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
-	col.add_child(_info_label)
+	info.add_child(_info_label)
+	info.add_child(_spacer())
+	_score_label = Label.new()
+	_score_label.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
+	info.add_child(_score_label)
 
-	# 棋盤
 	var aspect := AspectRatioContainer.new()
 	aspect.ratio = 1.0
 	aspect.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	col.add_child(aspect)
-	board = GomokuBoard.new()
+	board = ReversiBoard.new()
 	board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	board.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	board.cell_pressed.connect(_on_cell_pressed)
 	aspect.add_child(board)
 
-	# 工具列
 	var tools := HBoxContainer.new()
 	tools.add_theme_constant_override("separation", 12)
 	col.add_child(tools)
@@ -124,70 +132,87 @@ func _spacer() -> Control:
 # ---- 遊戲流程 ----
 
 func _new_game() -> void:
-	moves.clear()
-	for i in GomokuLogic.CELLS:
-		board.stones[i] = GomokuLogic.EMPTY
+	var init := ReversiLogic.initial_board()
+	for i in ReversiLogic.CELLS:
+		board.stones[i] = init[i]
 	board.last_move = -1
+	turn = ReversiLogic.BLACK
 	finished = false
+	undo_stack.clear()
 	_refresh()
 	_save_state()
 
 
 func _restore(state: Dictionary) -> void:
-	if state.is_empty() or String(state.get("game", "")) != "gomoku":
-		difficulty = int(config.get("difficulty", GomokuLogic.Difficulty.BEGINNER))
+	var saved := _to_int_array(state.get("board", []))
+	if state.is_empty() or String(state.get("game", "")) != "reversi" \
+			or saved.size() != ReversiLogic.CELLS:
+		difficulty = int(config.get("difficulty", ReversiLogic.Difficulty.BEGINNER))
 		_new_game()
 		return
 	mode = String(state.get("mode", "normal"))
 	difficulty = int(state.get("difficulty", 0))
-	moves.clear()
-	for i in GomokuLogic.CELLS:
-		board.stones[i] = GomokuLogic.EMPTY
-	for v in state.get("moves", []):
-		var c := int(v)
-		board.stones[c] = _player_of_ply(moves.size())
-		moves.append(c)
-	board.last_move = moves[-1] if not moves.is_empty() else -1
+	for i in ReversiLogic.CELLS:
+		board.stones[i] = saved[i]
+	board.last_move = int(state.get("last", -1))
+	turn = int(state.get("turn", ReversiLogic.BLACK))
 	finished = false
 	_refresh()
-	# 存檔停在 AI 回合（理論上不會發生，保險處理）
-	if not _is_player_turn():
+	if turn == ReversiLogic.WHITE:
 		_start_ai()
-
-
-## 第 n 手（0 起算）的顏色：偶數 = 黑（玩家）
-func _player_of_ply(n: int) -> int:
-	return GomokuLogic.BLACK if n % 2 == 0 else GomokuLogic.WHITE
-
-
-func _is_player_turn() -> bool:
-	return moves.size() % 2 == 0
 
 
 func _on_cell_pressed(i: int) -> void:
-	if finished or _ai_pending or not _is_player_turn():
+	if finished or _ai_pending or turn != ReversiLogic.BLACK:
 		return
-	if board.stones[i] != GomokuLogic.EMPTY:
+	var fl := ReversiLogic.flips_for(board.stones, ReversiLogic.BLACK, i)
+	if fl.is_empty():
 		return
-	_apply_move(i)
-	if not finished:
-		_start_ai()
+	undo_stack.append({
+		"board": board.stones.duplicate(),
+		"last": board.last_move,
+	})
+	if undo_stack.size() > 60:
+		undo_stack.pop_front()
+	ReversiLogic.apply_move(board.stones, ReversiLogic.BLACK, i, fl)
+	board.last_move = i
+	_after_move()
 
 
 func _apply_move(i: int) -> void:
-	var p := _player_of_ply(moves.size())
-	board.stones[i] = p
-	moves.append(i)
+	var fl := ReversiLogic.flips_for(board.stones, turn, i)
+	ReversiLogic.apply_move(board.stones, turn, i, fl)
 	board.last_move = i
+	_after_move()
+
+
+## 每步共用的收尾：判終局、換手或跳過
+func _after_move() -> void:
 	board.queue_redraw()
-	if GomokuLogic.check_win(board.stones, i):
-		_finish(p == GomokuLogic.BLACK)
+	var black_can := ReversiLogic.has_move(board.stones, ReversiLogic.BLACK)
+	var white_can := ReversiLogic.has_move(board.stones, ReversiLogic.WHITE)
+	if not black_can and not white_can:
+		_finish()
 		return
-	if GomokuLogic.is_full(board.stones):
-		_finish_draw()
-		return
+	var next := ReversiLogic.opponent(turn)
+	var next_can := black_can if next == ReversiLogic.BLACK else white_can
+	if next_can:
+		turn = next
+		_proceed()
+	else:
+		# next 無子可下：跳過，輪回原玩家
+		var skipped := "你" if next == ReversiLogic.BLACK else "AI"
+		var cont := "AI" if next == ReversiLogic.BLACK else "你"
+		OverlayDialog.open(self, "跳過回合", "%s無子可下，由%s繼續" % [skipped, cont], [
+			{"text": "確定", "action": _proceed},
+		])
+
+
+func _proceed() -> void:
 	_refresh()
 	_save_state()
+	if turn == ReversiLogic.WHITE and not finished:
+		_start_ai()
 
 
 func _start_ai() -> void:
@@ -199,19 +224,19 @@ func _start_ai() -> void:
 	_ai_thread.start(func() -> int:
 		var rng := RandomNumberGenerator.new()
 		rng.randomize()
-		return GomokuLogic.choose_move(snapshot, GomokuLogic.WHITE, diff, rng)
+		return ReversiLogic.choose_move(snapshot, ReversiLogic.WHITE, diff, rng)
 	)
 
 
-## 悔棋：收回 AI 與玩家各一手
 func _on_undo() -> void:
-	if finished or _ai_pending or moves.size() < 2:
+	if finished or _ai_pending or turn != ReversiLogic.BLACK or undo_stack.is_empty():
 		return
-	for k in 2:
-		var c: int = moves.pop_back()
-		board.stones[c] = GomokuLogic.EMPTY
-	board.last_move = moves[-1] if not moves.is_empty() else -1
-	board.queue_redraw()
+	var snap: Dictionary = undo_stack.pop_back()
+	var saved: Array = snap["board"]
+	for i in ReversiLogic.CELLS:
+		board.stones[i] = int(saved[i])
+	board.last_move = int(snap["last"])
+	turn = ReversiLogic.BLACK
 	_refresh()
 	_save_state()
 
@@ -233,13 +258,21 @@ func _on_back() -> void:
 
 # ---- 勝負 ----
 
-func _finish(player_won: bool) -> void:
+func _finish() -> void:
 	finished = true
-	SaveManager.record_result("gomoku", difficulty, player_won)
+	var c := ReversiLogic.count(board.stones)
+	var player_won := c[0] > c[1]
+	SaveManager.record_result("reversi", difficulty, player_won)
 	SaveManager.set_in_progress({})
 	_refresh()
-	var title := "你贏了！" if player_won else "AI 獲勝"
-	var msg := "難度：%s・共 %d 手" % [GomokuLogic.DIFFICULTY_TEXT[difficulty], moves.size()]
+	var title: String
+	if c[0] > c[1]:
+		title = "你贏了！"
+	elif c[0] < c[1]:
+		title = "AI 獲勝"
+	else:
+		title = "平手"
+	var msg := "黑 %d：%d 白・難度 %s" % [c[0], c[1], ReversiLogic.DIFFICULTY_TEXT[difficulty]]
 	var buttons: Array = []
 	if mode == "daily" and player_won:
 		Daily.mark_completed()
@@ -250,17 +283,6 @@ func _finish(player_won: bool) -> void:
 	OverlayDialog.open(self, title, msg, buttons)
 
 
-func _finish_draw() -> void:
-	finished = true
-	SaveManager.record_result("gomoku", difficulty, false)
-	SaveManager.set_in_progress({})
-	_refresh()
-	OverlayDialog.open(self, "平手", "棋盤已下滿", [
-		{"text": "再來一局", "action": _new_game},
-		{"text": "回首頁", "action": _go_home, "secondary": true},
-	])
-
-
 func _go_home() -> void:
 	Main.instance.goto_home()
 
@@ -268,25 +290,42 @@ func _go_home() -> void:
 # ---- 顯示與存檔 ----
 
 func _refresh() -> void:
-	board.queue_redraw()
-	var mode_text := "每日挑戰・五子棋" if mode == "daily" else "五子棋"
-	_title_label.text = "%s・%s" % [mode_text, GomokuLogic.DIFFICULTY_TEXT[difficulty]]
+	var mode_text := "每日挑戰・黑白棋" if mode == "daily" else "黑白棋"
+	_title_label.text = "%s・%s" % [mode_text, ReversiLogic.DIFFICULTY_TEXT[difficulty]]
+	var c := ReversiLogic.count(board.stones)
+	_score_label.text = "黑 %d：%d 白" % [c[0], c[1]]
 	if finished:
-		_info_label.text = "對局結束・共 %d 手" % moves.size()
+		_info_label.text = "對局結束"
 	elif _ai_pending:
 		_info_label.text = "AI 思考中…"
 	else:
-		_info_label.text = "你的回合（黑棋）・第 %d 手" % (moves.size() + 1)
-	_undo_btn.disabled = finished or _ai_pending or moves.size() < 2
+		_info_label.text = "你的回合（黑棋）"
+	# 玩家回合才顯示合法手提示
+	if not finished and not _ai_pending and turn == ReversiLogic.BLACK:
+		board.hints = ReversiLogic.legal_moves(board.stones, ReversiLogic.BLACK)
+	else:
+		board.hints = []
+	board.queue_redraw()
+	_undo_btn.disabled = finished or _ai_pending or undo_stack.is_empty()
 
 
 func _save_state() -> void:
 	if finished:
 		return
 	SaveManager.set_in_progress({
-		"game": "gomoku",
+		"game": "reversi",
 		"mode": mode,
 		"difficulty": difficulty,
 		"date": Daily.today_id() if mode == "daily" else "",
-		"moves": moves.duplicate(),
+		"board": board.stones.duplicate(),
+		"turn": turn,
+		"last": board.last_move,
 	})
+
+
+static func _to_int_array(a: Variant) -> Array[int]:
+	var out: Array[int] = []
+	if a is Array:
+		for v in a:
+			out.append(int(v))
+	return out
