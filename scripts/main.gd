@@ -32,6 +32,10 @@ func _ready() -> void:
 	if OS.get_environment("BRAINCLUB_AUTOTEST") == "1":
 		var script: GDScript = load("res://tests/autotest.gd")
 		add_child(script.new())
+	# 商店主題圖產生器：BRAINCLUB_BANNER=輸出路徑
+	if OS.get_environment("BRAINCLUB_BANNER") != "":
+		var banner: GDScript = load("res://tools/banner.gd")
+		add_child(banner.new())
 
 
 ## 依裝置回報的安全顯示區域（挖孔、瀏海、系統手勢列）設定畫面內縮。

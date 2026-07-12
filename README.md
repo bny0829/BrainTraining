@@ -58,6 +58,8 @@ Remove-Item Env:BRAINCLUB_AUTOTEST, Env:BRAINCLUB_SAVE
 | `scripts/minesweeper/` | 踩地雷：佈雷邏輯（首挖安全）、棋盤繪製（含長按）、遊戲畫面 |
 | `scripts/achievement_defs.gd` | 成就定義與判定（純函式）；`achievement_screen.gd` 為清單畫面 |
 | `tests/` | 單元測試與自動化操作測試 |
+| `tools/` | 圖示與商店素材產生器 |
+| `store_assets/` | Google Play 上架素材（圖示、主題圖、截圖、隱私權政策） |
 | `docs/` | 專案文件（見下） |
 
 ## 文件
@@ -71,6 +73,7 @@ Remove-Item Env:BRAINCLUB_AUTOTEST, Env:BRAINCLUB_SAVE
 | [05_Game_Design_Gomoku.md](docs/05_Game_Design_Gomoku.md) | 五子棋玩法規格與 AI 設計 |
 | [06_Game_Design_Reversi.md](docs/06_Game_Design_Reversi.md) | 黑白棋玩法規格與 AI 設計 |
 | [07_Game_Design_Minesweeper.md](docs/07_Game_Design_Minesweeper.md) | 踩地雷玩法規格 |
+| [08_Play_Release_Guide.md](docs/08_Play_Release_Guide.md) | Google Play 上架指南（素材、文案、封測流程） |
 
 ## 技術選型
 

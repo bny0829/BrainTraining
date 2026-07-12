@@ -37,5 +37,11 @@ func _initialize() -> void:
 	mono.blend_rect(glyph, Rect2i(0, 0, 240, 240), Vector2i((432 - 240) / 2, (432 - 240) / 2))
 	mono.save_png("res://assets/android/icon_adaptive_mono_432.png")
 
-	print("[gen_icons] 完成：assets/android/ 4 個 PNG")
+	# Google Play 商店圖示 512×512（不透明、無圓角遮罩由 Play 處理）
+	DirAccess.make_dir_recursive_absolute("res://store_assets")
+	var store := Image.new()
+	store.load_svg_from_string(svg, 4.0)  # 128 × 4 = 512
+	store.save_png("res://store_assets/icon_512.png")
+
+	print("[gen_icons] 完成：assets/android/ 4 個 PNG + store_assets/icon_512.png")
 	quit(0)
