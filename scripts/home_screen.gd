@@ -44,8 +44,10 @@ func _build_ui() -> void:
 
 const GAME_NAMES := {
 	"sudoku": "數獨", "gomoku": "五子棋", "reversi": "黑白棋",
-	"minesweeper": "踩地雷", "game2048": "2048",
+	"minesweeper": "踩地雷", "game2048": "2048", "solitaire": "接龍",
 }
+## 沒有難度分級的遊戲（續玩卡不顯示難度）
+const NO_DIFFICULTY := ["game2048", "solitaire"]
 
 
 func _difficulty_label(game: String, d: int) -> String:
@@ -158,12 +160,13 @@ func _build_continue_card(col: VBoxContainer) -> void:
 			detail = "第 %d 手" % ((st.get("moves", []) as Array).size() + 1)
 		"game2048":
 			detail = "分數 %d" % int(st.get("score", 0))
+		"solitaire":
+			detail = "%d 步" % int(st.get("moves", 0))
 		_:
 			var c := ReversiLogic.count(ReversiScreen._to_int_array(st.get("board", [])))
 			detail = "黑 %d：%d 白" % [c[0], c[1]]
 	var desc := Label.new()
-	if game == "game2048":
-		# 2048 沒有難度分級
+	if NO_DIFFICULTY.has(game):
 		desc.text = "%s・%s" % [mode_text, detail]
 	else:
 		desc.text = "%s・%s・%s" % [
@@ -185,6 +188,8 @@ func _build_continue_card(col: VBoxContainer) -> void:
 			btn.pressed.connect(func() -> void: Main.instance.open_minesweeper({"mode": "resume"}))
 		"game2048":
 			btn.pressed.connect(func() -> void: Main.instance.open_game2048({"mode": "resume"}))
+		"solitaire":
+			btn.pressed.connect(func() -> void: Main.instance.open_solitaire({"mode": "resume"}))
 		_:
 			btn.pressed.connect(func() -> void: Main.instance.open_reversi({"mode": "resume"}))
 	inner.add_child(btn)
@@ -207,7 +212,7 @@ func _build_games(col: VBoxContainer) -> void:
 	_game_card(grid, "黑白棋", "AI 對戰・合法手提示", _pick_reversi_difficulty)
 	_game_card(grid, "踩地雷", "首挖安全・長按插旗", _pick_minesweeper_difficulty)
 	_game_card(grid, "2048", "滑動合併・挑戰高分", _start_2048)
-	_game_card(grid, "接龍", "即將推出", Callable())
+	_game_card(grid, "接龍", "點擊自動移動・自動收尾", _start_solitaire)
 
 
 func _game_card(grid: GridContainer, game_name: String, desc_text: String, on_start: Callable) -> void:
@@ -313,6 +318,10 @@ func _start_2048() -> void:
 	Main.instance.open_game2048({"mode": "normal"})
 
 
+func _start_solitaire() -> void:
+	Main.instance.open_solitaire({"mode": "normal"})
+
+
 func _build_stats(col: VBoxContainer) -> void:
 	var s := SaveManager.sudoku_stats()
 	var played := int(s.get("played", 0))
@@ -350,6 +359,15 @@ func _build_stats(col: VBoxContainer) -> void:
 		if int(t.get("played", 0)) > 0:
 			text += "\n完整場數：%d" % int(t.get("played", 0))
 		_stats_card(col, "2048 戰績", text)
+
+	var so := SaveManager.stats("solitaire")
+	var so_played := int(so.get("played", 0))
+	if so_played > 0:
+		var text := "完成 %d / %d 局" % [int(so.get("won", 0)), so_played]
+		var best := int(so.get("best_time", 0))
+		if best > 0:
+			text += "\n最佳時間：%s" % SudokuScreen.format_time(best)
+		_stats_card(col, "接龍戰績", text)
 
 	var ms := SaveManager.stats("minesweeper")
 	var ms_played := int(ms.get("played", 0))
