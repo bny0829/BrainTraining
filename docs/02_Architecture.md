@@ -16,7 +16,8 @@ main.tscn（唯一場景）
 Autoload（全域單例）
 ├── SaveManager   user://save.json 讀寫、戰績、進行中遊戲（BRAINCLUB_SAVE 可換測試存檔）
 ├── Daily         每日挑戰輪替表（星期→遊戲+難度）、種子、連續天數
-└── Achievements  成就解鎖紀錄與通知（定義在 scripts/achievement_defs.gd，純函式可測試）
+├── Achievements  成就解鎖紀錄與通知（定義在 scripts/achievement_defs.gd，純函式可測試）
+└── Sfx           程式合成音效（正弦波+包絡，零音檔）；全域按鈕音在 Main 以 node_added 掛勾
 ```
 
 設計決策：

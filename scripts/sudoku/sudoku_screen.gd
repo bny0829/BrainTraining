@@ -251,6 +251,7 @@ func _on_number(d: int) -> void:
 		else:
 			board.errors[i] = true
 			mistakes += 1
+			Sfx.play("error")
 			_update_info()
 			if mistakes >= MAX_MISTAKES:
 				_game_over()
@@ -358,6 +359,7 @@ func _check_win() -> void:
 		if board.values[i] != solution[i] or board.errors[i]:
 			return
 	finished = true
+	Sfx.play("win")
 	SaveManager.record_sudoku_result(difficulty, int(seconds), true)
 	SaveManager.set_in_progress({})
 	var lines := "難度：%s\n時間：%s" % [
@@ -377,6 +379,7 @@ func _check_win() -> void:
 
 func _game_over() -> void:
 	finished = true
+	Sfx.play("lose")
 	SaveManager.record_sudoku_result(difficulty, int(seconds), false)
 	SaveManager.set_in_progress({})
 	OverlayDialog.open(self, "挑戰失敗", "錯誤已達 %d 次" % MAX_MISTAKES, [

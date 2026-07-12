@@ -179,6 +179,7 @@ func _apply_move(i: int) -> void:
 	board.stones[i] = p
 	moves.append(i)
 	board.last_move = i
+	Sfx.play("stone")
 	board.queue_redraw()
 	if GomokuLogic.check_win(board.stones, i):
 		_finish(p == GomokuLogic.BLACK)
@@ -235,6 +236,7 @@ func _on_back() -> void:
 
 func _finish(player_won: bool) -> void:
 	finished = true
+	Sfx.play("win" if player_won else "lose")
 	SaveManager.record_result("gomoku", difficulty, player_won)
 	SaveManager.set_in_progress({})
 	_refresh()
