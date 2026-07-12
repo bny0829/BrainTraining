@@ -259,6 +259,37 @@ func _run() -> void:
 	_check(Achievements.is_unlocked("t2048_512"), "2048 成就未解鎖")
 	print("[autotest] 2048 OK")
 
+	# ---- 接龍 ----
+	main.open_solitaire({"mode": "normal"})
+	await tree.process_frame
+	var sol := main.current_screen() as SolitaireScreen
+	_check(sol != null, "接龍畫面未建立")
+	_check(sol.board.stock.size() == 24, "接龍庫存應為 24 張")
+	# 翻庫存牌
+	sol._tap_stock()
+	_check(sol.board.waste.size() == 1 and sol.board.stock.size() == 23, "翻牌失敗")
+	# 復原
+	sol._on_undo()
+	_check(sol.board.waste.is_empty() and sol.board.stock.size() == 24, "接龍復原失敗")
+	# 再翻一張並嘗試點擊各列頂牌（規則保證不會崩潰）
+	sol._tap_stock()
+	for c in 7:
+		var col_size: int = (sol.board.columns[c] as Array).size()
+		if col_size > 0:
+			sol._tap_column(c, col_size - 1)
+	await _shot("solitaire.png")
+	# 存檔續玩
+	var sol_stock := sol.board.stock.duplicate()
+	var sol_moves := sol.moves
+	main.goto_home()
+	await tree.process_frame
+	main.open_solitaire({"mode": "resume"})
+	await tree.process_frame
+	var sol2 := main.current_screen() as SolitaireScreen
+	_check(sol2 != null, "接龍續玩畫面未建立")
+	_check(sol2.board.stock == sol_stock and sol2.moves == sol_moves, "接龍續玩還原失敗")
+	print("[autotest] 接龍 OK")
+
 	# ---- 設定頁 ----
 	main.open_settings()
 	await tree.process_frame
