@@ -47,8 +47,8 @@ func _run() -> void:
 	col.add_child(title)
 
 	var sub := Label.new()
-	sub.text = "數獨・五子棋・黑白棋・踩地雷"
-	sub.add_theme_font_size_override("font_size", 86)
+	sub.text = "數獨・五子棋・黑白棋・踩地雷・2048・接龍"
+	sub.add_theme_font_size_override("font_size", 72)
 	sub.add_theme_color_override("font_color", Color("#dfe6ff"))
 	col.add_child(sub)
 
