@@ -182,6 +182,43 @@ func _run() -> void:
 	_check(int(ch["difficulty"]) >= 0 and int(ch["difficulty"]) <= 3, "每日挑戰難度無效")
 	print("[autotest] 每日輪替 OK")
 
+	# ---- 踩地雷 ----
+	main.open_minesweeper({"mode": "normal", "difficulty": MinesweeperLogic.Difficulty.BEGINNER, "seed": 99})
+	await tree.process_frame
+	var msw := main.current_screen() as MinesweeperScreen
+	_check(msw != null, "踩地雷畫面未建立")
+	# 首挖中央：保證安全且連鎖展開
+	msw._on_cell_tapped(40)
+	_check(msw.started, "首挖未佈雷")
+	_check(msw.board.revealed[40], "首挖未翻開")
+	var opened_n := 0
+	for i in 81:
+		if msw.board.revealed[i]:
+			opened_n += 1
+	_check(opened_n >= 9, "首挖未連鎖展開（%d 格）" % opened_n)
+	# 插旗：長按未翻開格
+	var covered := -1
+	for i in 81:
+		if not msw.board.revealed[i]:
+			covered = i
+			break
+	msw._on_cell_long_pressed(covered)
+	_check(msw.board.flagged[covered], "長按插旗失敗")
+	msw._on_cell_tapped(covered)
+	_check(not msw.board.revealed[covered], "插旗格不應被挖開")
+	await _shot("minesweeper.png")
+	# 存檔續玩
+	var saved_revealed: Array[bool] = msw.board.revealed.duplicate()
+	main.goto_home()
+	await tree.process_frame
+	main.open_minesweeper({"mode": "resume"})
+	await tree.process_frame
+	var msw2 := main.current_screen() as MinesweeperScreen
+	_check(msw2 != null, "踩地雷續玩畫面未建立")
+	_check(msw2.board.revealed == saved_revealed, "踩地雷續玩還原失敗")
+	_check(msw2.board.flagged[covered], "旗標未還原")
+	print("[autotest] 踩地雷 OK")
+
 	# ---- 設定頁 ----
 	main.open_settings()
 	await tree.process_frame

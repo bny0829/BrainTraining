@@ -85,6 +85,12 @@ func open_reversi(config: Dictionary) -> void:
 	_switch(screen)
 
 
+func open_minesweeper(config: Dictionary) -> void:
+	var screen := MinesweeperScreen.new()
+	screen.config = config
+	_switch(screen)
+
+
 func open_achievements() -> void:
 	_switch(AchievementScreen.new())
 

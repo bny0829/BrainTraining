@@ -22,6 +22,21 @@ const STONE_BLACK := Color("#26262c")
 const STONE_WHITE := Color("#fbfbf9")
 const STONE_WHITE_EDGE := Color("#b5b5bf")
 
+# ---- 踩地雷色票 ----
+const MINE_COVERED := Color("#a9b6d3")
+const MINE_COVERED_EDGE := Color("#8d9cc0")
+const MINE_REVEALED := Color("#efece2")
+const MINE_LINE := Color("#c6cbdb")
+const MINE_FLAG := Color("#d65454")
+const MINE_BOMB := Color("#2b2b33")
+const MINE_EXPLODED := Color("#f2b1b1")
+## 數字 1~8 的顏色（索引 0 不使用）
+const MINE_NUMBERS := [
+	Color.WHITE,
+	Color("#1976d2"), Color("#388e3c"), Color("#d32f2f"), Color("#7b1fa2"),
+	Color("#b26500"), Color("#0097a7"), Color("#455a64"), Color("#616161"),
+]
+
 # ---- 黑白棋色票 ----
 const REVERSI_BOARD := Color("#3f8f5f")
 const REVERSI_LINE := Color("#2e6b47")

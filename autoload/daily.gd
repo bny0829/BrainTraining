@@ -5,13 +5,13 @@ extends Node
 
 # Time.get_date_dict_from_system().weekday：0 = 星期日
 const ROTATION := [
-	{"game": "reversi", "difficulty": ReversiLogic.Difficulty.NORMAL},  # 日
-	{"game": "sudoku", "difficulty": SudokuLogic.Difficulty.EASY},      # 一
-	{"game": "gomoku", "difficulty": GomokuLogic.Difficulty.NORMAL},    # 二
-	{"game": "sudoku", "difficulty": SudokuLogic.Difficulty.MEDIUM},    # 三
-	{"game": "reversi", "difficulty": ReversiLogic.Difficulty.HARD},    # 四
-	{"game": "gomoku", "difficulty": GomokuLogic.Difficulty.HARD},      # 五
-	{"game": "sudoku", "difficulty": SudokuLogic.Difficulty.EXPERT},    # 六（週末 Boss）
+	{"game": "reversi", "difficulty": ReversiLogic.Difficulty.NORMAL},          # 日
+	{"game": "sudoku", "difficulty": SudokuLogic.Difficulty.EASY},              # 一
+	{"game": "gomoku", "difficulty": GomokuLogic.Difficulty.NORMAL},            # 二
+	{"game": "minesweeper", "difficulty": MinesweeperLogic.Difficulty.NORMAL},  # 三
+	{"game": "reversi", "difficulty": ReversiLogic.Difficulty.HARD},            # 四
+	{"game": "gomoku", "difficulty": GomokuLogic.Difficulty.HARD},              # 五
+	{"game": "sudoku", "difficulty": SudokuLogic.Difficulty.EXPERT},            # 六（週末 Boss）
 ]
 
 
