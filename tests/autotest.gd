@@ -24,6 +24,7 @@ func _run() -> void:
 
 	var main := Main.instance
 	_check(main.current_screen() is HomeScreen, "首頁未建立")
+	await _shot("home.png")
 	print("[autotest] 首頁 OK")
 
 	main.open_sudoku({"mode": "normal", "difficulty": SudokuLogic.Difficulty.EASY, "seed": 123})
