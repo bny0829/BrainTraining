@@ -10,6 +10,9 @@ export/
 *.idsig
 *.exe.import
 
+# Android Gradle 建置樣板（由「專案→安裝 Android 建置樣板」生成）
+android/
+
 # 系統
 Thumbs.db
 Desktop.ini

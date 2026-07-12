@@ -66,12 +66,13 @@ Brain Club 是一款經典益智遊戲合集，一次安裝、六款遊戲，全
 
 ## 五、匯出 AAB（Play 只收 AAB，不收 APK）
 
-1. Godot：專案 → 安裝 Android 建構範本（第一次需要）
+1. Godot 選單：**專案 → 安裝 Android 建置樣板…** → 確認（一次性；會生成 `android/` 資料夾，已加入 .gitignore）。沒做這步匯出視窗會顯示紅字「尚未在專案中安裝 Android 建置樣板」
 2. 專案 → 匯出 → Android 預設組：
-   - `Gradle Build / Use Gradle Build` 打勾
-   - `Gradle Build / Export Format` 選 **AAB**
+   - `Gradle 構建 / 使用 Gradle 構建` 打勾
+   - `匯出格式` 選 **Export AAB**
+   - Export Path 改成 `./BrainClub.aab`
 3. 確認已重啟過 Godot（讀取金鑰環境變數），**不要**勾「以除錯模式匯出」
-4. 匯出 `brainclub_0.7.0.aab`
+4. 按「匯出專案」。**第一次 Gradle 建置需下載相依套件（需網路，約 3～10 分鐘）**，輸出面板會持續顯示進度
 
 版號規則：每次上傳 Play 的 `version/code` 必須**比前一次上傳大**（目前 7），跳號完全沒關係（1~6 沒上傳過不影響）；`version/name` 對玩家顯示（目前 0.7.0）。封測從 v0.7 開始，測試者直接拿到六款遊戲完整版。
 
