@@ -38,6 +38,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		_move(Game2048Logic.DIR_DOWN)
 
 
+# 整個畫面（棋盤以外的空白區域）也接受滑動手勢，
+# 只要不是落在按鈕上的點擊都能操作，觸控範圍大幅加大
+var _press_pos := Vector2.ZERO
+var _tracking := false
+
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_press_pos = event.position
+			_tracking = true
+		elif _tracking:
+			_tracking = false
+			var d: Vector2 = event.position - _press_pos
+			if d.length() >= Game2048Board.SWIPE_MIN_PX:
+				if absf(d.x) > absf(d.y):
+					_move(Game2048Logic.DIR_RIGHT if d.x > 0 else Game2048Logic.DIR_LEFT)
+				else:
+					_move(Game2048Logic.DIR_DOWN if d.y > 0 else Game2048Logic.DIR_UP)
+
+
 # ---- UI 建構 ----
 
 func _build_ui() -> void:
@@ -116,6 +137,7 @@ func _build_ui() -> void:
 func _spacer() -> Control:
 	var s := Control.new()
 	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	s.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 讓滑動手勢穿透到畫面層
 	return s
 
 

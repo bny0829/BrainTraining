@@ -51,6 +51,7 @@ func _achievement_card(list: VBoxContainer, def: Dictionary) -> void:
 	var done := Achievements.is_unlocked(id)
 
 	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS  # 讓捲動手勢穿透卡片
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.add_child(panel)
 

@@ -46,9 +46,10 @@ func _build_ui() -> void:
 const GAME_NAMES := {
 	"sudoku": "數獨", "gomoku": "五子棋", "reversi": "黑白棋",
 	"minesweeper": "踩地雷", "game2048": "2048", "solitaire": "接龍",
+	"freecell": "新接龍",
 }
 ## 沒有難度分級的遊戲（續玩卡不顯示難度）
-const NO_DIFFICULTY := ["game2048", "solitaire"]
+const NO_DIFFICULTY := ["game2048", "solitaire", "freecell"]
 
 
 func _difficulty_label(game: String, d: int) -> String:
@@ -135,6 +136,9 @@ func _start_daily() -> void:
 		"minesweeper":
 			cfg["seed"] = int(ch["seed"])
 			Main.instance.open_minesweeper(cfg)
+		"freecell":
+			cfg["seed"] = int(ch["seed"])
+			Main.instance.open_freecell(cfg)
 		_:
 			Main.instance.open_reversi(cfg)
 
@@ -191,7 +195,7 @@ func _progress_detail(game: String, st: Dictionary) -> String:
 			return "第 %d 手" % ((st.get("moves", []) as Array).size() + 1)
 		"game2048":
 			return "分數 %d" % int(st.get("score", 0))
-		"solitaire":
+		"solitaire", "freecell":
 			return "%d 步" % int(st.get("moves", 0))
 		_:
 			var c := ReversiLogic.count(ReversiScreen._to_int_array(st.get("board", [])))
@@ -211,6 +215,8 @@ func _resume_game(game: String) -> void:
 			Main.instance.open_game2048(cfg)
 		"solitaire":
 			Main.instance.open_solitaire(cfg)
+		"freecell":
+			Main.instance.open_freecell(cfg)
 		_:
 			Main.instance.open_reversi(cfg)
 
@@ -232,11 +238,13 @@ func _build_games(col: VBoxContainer) -> void:
 	_game_card(grid, "黑白棋", "AI 對戰・合法手提示", _pick_reversi_difficulty)
 	_game_card(grid, "踩地雷", "首挖安全・長按插旗", _pick_minesweeper_difficulty)
 	_game_card(grid, "2048", "滑動合併・挑戰高分", _start_2048)
-	_game_card(grid, "接龍", "點擊自動移動・自動收尾", _start_solitaire)
+	_game_card(grid, "接龍", "選牌移動・自動收尾", _start_solitaire)
+	_game_card(grid, "新接龍", "全明牌・幾乎必有解", _start_freecell)
 
 
 func _game_card(grid: GridContainer, game_name: String, desc_text: String, on_start: Callable) -> void:
 	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS  # 讓捲動手勢穿透卡片
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.add_child(panel)
 
@@ -342,6 +350,10 @@ func _start_solitaire() -> void:
 	Main.instance.open_solitaire({"mode": "normal"})
 
 
+func _start_freecell() -> void:
+	Main.instance.open_freecell({"mode": "normal"})
+
+
 func _build_stats(col: VBoxContainer) -> void:
 	var s := SaveManager.sudoku_stats()
 	var played := int(s.get("played", 0))
@@ -389,6 +401,15 @@ func _build_stats(col: VBoxContainer) -> void:
 			text += "\n最佳時間：%s" % SudokuScreen.format_time(best)
 		_stats_card(col, "接龍戰績", text)
 
+	var fc := SaveManager.stats("freecell")
+	var fc_played := int(fc.get("played", 0))
+	if fc_played > 0:
+		var text := "完成 %d / %d 局" % [int(fc.get("won", 0)), fc_played]
+		var best := int(fc.get("best_time", 0))
+		if best > 0:
+			text += "\n最佳時間：%s" % SudokuScreen.format_time(best)
+		_stats_card(col, "新接龍戰績", text)
+
 	var ms := SaveManager.stats("minesweeper")
 	var ms_played := int(ms.get("played", 0))
 	if ms_played > 0:
@@ -415,6 +436,7 @@ func _stats_card(col: VBoxContainer, title: String, text: String) -> void:
 ## 建立一張卡片並回傳其內容容器
 func _card(col: VBoxContainer) -> VBoxContainer:
 	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS  # 讓捲動手勢穿透卡片
 	col.add_child(panel)
 	var margin := MarginContainer.new()
 	for m in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:

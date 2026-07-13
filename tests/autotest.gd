@@ -178,7 +178,7 @@ func _run() -> void:
 
 	# ---- 每日挑戰設定 ----
 	var ch := Daily.today_challenge()
-	_check(["sudoku", "gomoku", "reversi"].has(String(ch["game"])), "每日挑戰遊戲無效")
+	_check(["sudoku", "gomoku", "reversi", "minesweeper", "freecell"].has(String(ch["game"])), "每日挑戰遊戲無效")
 	_check(int(ch["difficulty"]) >= 0 and int(ch["difficulty"]) <= 3, "每日挑戰難度無效")
 	print("[autotest] 每日輪替 OK")
 
@@ -311,6 +311,43 @@ func _run() -> void:
 	_check(sol2 != null, "接龍續玩畫面未建立")
 	_check(sol2.board.stock == sol_stock and sol2.moves == sol_moves, "接龍續玩還原失敗")
 	print("[autotest] 接龍 OK")
+
+	# ---- 新接龍 ----
+	main.open_freecell({"mode": "normal", "seed": 77})
+	await tree.process_frame
+	var fc := main.current_screen() as FreecellScreen
+	_check(fc != null, "新接龍畫面未建立")
+	var fc_total := 0
+	for c in 8:
+		fc_total += (fc.board.cascades[c] as Array).size()
+	_check(fc_total == 52, "新接龍開局 52 張")
+	# 選取疊頂牌 → 移入自由格
+	var src := -1
+	for c in 8:
+		if not (fc.board.cascades[c] as Array).is_empty():
+			src = c
+			break
+	var top_i: int = (fc.board.cascades[src] as Array).size() - 1
+	fc._on_target("cascade", src, top_i)
+	_check(fc.board.selected_zone == "cascade", "新接龍選取失敗")
+	fc._on_target("free", 0, 0)
+	_check(fc.board.free[0] >= 0, "移入自由格失敗")
+	_check((fc.board.cascades[src] as Array).size() == top_i, "來源疊未減少")
+	# 復原
+	fc._on_undo()
+	_check(fc.board.free[0] < 0, "新接龍復原失敗")
+	# 收基礎堆（可能沒有 A 在疊頂，但不能崩潰）
+	fc._auto_collect()
+	await _shot("freecell.png")
+	# 續玩
+	var fc_moves := fc.moves
+	main.goto_home()
+	await tree.process_frame
+	main.open_freecell({"mode": "resume"})
+	await tree.process_frame
+	var fc2 := main.current_screen() as FreecellScreen
+	_check(fc2 != null and fc2.moves == fc_moves, "新接龍續玩還原失敗")
+	print("[autotest] 新接龍 OK")
 
 	# ---- 多局進行中存檔（v0.8：各遊戲可同時掛局）----
 	var active_count := 0
