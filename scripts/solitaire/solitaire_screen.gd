@@ -23,7 +23,7 @@ var _auto_btn: Button
 func _ready() -> void:
 	_build_ui()
 	if String(config.get("mode", "normal")) == "resume":
-		_restore(SaveManager.get_in_progress())
+		_restore(SaveManager.get_in_progress("solitaire"))
 	else:
 		_new_game()
 
@@ -427,7 +427,7 @@ func _win() -> void:
 	if best == 0 or int(seconds) < best:
 		s["best_time"] = int(seconds)
 	SaveManager.save()
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("solitaire", {})
 	_refresh()
 	OverlayDialog.open(self, "恭喜完成！", "時間：%s・共 %d 步" % [
 		SudokuScreen.format_time(int(seconds)), moves
@@ -468,7 +468,7 @@ func _refresh() -> void:
 func _save_state() -> void:
 	if finished:
 		return
-	SaveManager.set_in_progress({
+	SaveManager.set_in_progress("solitaire", {
 		"game": "solitaire",
 		"mode": "normal",
 		"difficulty": 0,

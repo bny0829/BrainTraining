@@ -72,7 +72,7 @@ func _run() -> void:
 	await _shot("sudoku.png")
 
 	# 存檔還原
-	var saved := SaveManager.get_in_progress()
+	var saved := SaveManager.get_in_progress("sudoku")
 	_check(not saved.is_empty(), "進行中存檔遺失")
 	print("[autotest] 數獨操作 OK")
 
@@ -311,6 +311,14 @@ func _run() -> void:
 	_check(sol2 != null, "接龍續玩畫面未建立")
 	_check(sol2.board.stock == sol_stock and sol2.moves == sol_moves, "接龍續玩還原失敗")
 	print("[autotest] 接龍 OK")
+
+	# ---- 多局進行中存檔（v0.8：各遊戲可同時掛局）----
+	var active_count := 0
+	for g_name in ["sudoku", "gomoku", "reversi", "minesweeper", "game2048", "solitaire"]:
+		if not SaveManager.get_in_progress(g_name).is_empty():
+			active_count += 1
+	_check(active_count >= 4, "多局進行中存檔數量不足（%d）" % active_count)
+	print("[autotest] 多局存檔 OK（同時 %d 局）" % active_count)
 
 	# ---- 設定頁 ----
 	main.open_settings()

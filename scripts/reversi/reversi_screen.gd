@@ -29,7 +29,7 @@ func _ready() -> void:
 	mode = String(config.get("mode", "normal"))
 	_build_ui()
 	if mode == "resume":
-		_restore(SaveManager.get_in_progress())
+		_restore(SaveManager.get_in_progress("reversi"))
 	else:
 		difficulty = int(config.get("difficulty", ReversiLogic.Difficulty.BEGINNER))
 		_new_game()
@@ -266,7 +266,7 @@ func _finish() -> void:
 	var player_won := c[0] > c[1]
 	Sfx.play("win" if player_won else "lose")
 	SaveManager.record_result("reversi", difficulty, player_won)
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("reversi", {})
 	_refresh()
 	var title: String
 	if c[0] > c[1]:
@@ -315,7 +315,7 @@ func _refresh() -> void:
 func _save_state() -> void:
 	if finished:
 		return
-	SaveManager.set_in_progress({
+	SaveManager.set_in_progress("reversi", {
 		"game": "reversi",
 		"mode": mode,
 		"difficulty": difficulty,

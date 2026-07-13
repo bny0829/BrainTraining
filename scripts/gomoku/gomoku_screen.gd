@@ -26,7 +26,7 @@ func _ready() -> void:
 	mode = String(config.get("mode", "normal"))
 	_build_ui()
 	if mode == "resume":
-		_restore(SaveManager.get_in_progress())
+		_restore(SaveManager.get_in_progress("gomoku"))
 	else:
 		difficulty = int(config.get("difficulty", GomokuLogic.Difficulty.BEGINNER))
 		_new_game()
@@ -238,7 +238,7 @@ func _finish(player_won: bool) -> void:
 	finished = true
 	Sfx.play("win" if player_won else "lose")
 	SaveManager.record_result("gomoku", difficulty, player_won)
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("gomoku", {})
 	_refresh()
 	var title := "你贏了！" if player_won else "AI 獲勝"
 	var msg := "難度：%s・共 %d 手" % [GomokuLogic.DIFFICULTY_TEXT[difficulty], moves.size()]
@@ -255,7 +255,7 @@ func _finish(player_won: bool) -> void:
 func _finish_draw() -> void:
 	finished = true
 	SaveManager.record_result("gomoku", difficulty, false)
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("gomoku", {})
 	_refresh()
 	OverlayDialog.open(self, "平手", "棋盤已下滿", [
 		{"text": "再來一局", "action": _new_game},
@@ -285,7 +285,7 @@ func _refresh() -> void:
 func _save_state() -> void:
 	if finished:
 		return
-	SaveManager.set_in_progress({
+	SaveManager.set_in_progress("gomoku", {
 		"game": "gomoku",
 		"mode": mode,
 		"difficulty": difficulty,

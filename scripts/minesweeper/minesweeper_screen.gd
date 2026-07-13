@@ -29,7 +29,7 @@ func _ready() -> void:
 	mode = String(config.get("mode", "normal"))
 	_build_ui()
 	if mode == "resume":
-		_restore(SaveManager.get_in_progress())
+		_restore(SaveManager.get_in_progress("minesweeper"))
 	else:
 		difficulty = int(config.get("difficulty", MinesweeperLogic.Difficulty.BEGINNER))
 		_new_game()
@@ -248,7 +248,7 @@ func _explode(i: int) -> void:
 	board.queue_redraw()
 	Sfx.play("lose")
 	SaveManager.record_result("minesweeper", difficulty, false)
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("minesweeper", {})
 	_refresh()
 	OverlayDialog.open(self, "踩到地雷！", "存活 %s・難度 %s" % [
 		SudokuScreen.format_time(int(seconds)), MinesweeperLogic.DIFFICULTY_TEXT[difficulty]
@@ -263,7 +263,7 @@ func _win() -> void:
 	board.show_mines = false
 	Sfx.play("win")
 	SaveManager.record_result("minesweeper", difficulty, true)
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("minesweeper", {})
 	_refresh()
 	var msg := "時間：%s・難度 %s" % [
 		SudokuScreen.format_time(int(seconds)), MinesweeperLogic.DIFFICULTY_TEXT[difficulty]
@@ -308,7 +308,7 @@ func _refresh() -> void:
 func _save_state() -> void:
 	if finished:
 		return
-	SaveManager.set_in_progress({
+	SaveManager.set_in_progress("minesweeper", {
 		"game": "minesweeper",
 		"mode": mode,
 		"difficulty": difficulty,

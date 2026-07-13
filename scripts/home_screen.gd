@@ -9,12 +9,13 @@ func _ready() -> void:
 	_build_ui()
 
 
-## 昨天沒玩完的每日挑戰已過期，直接捨棄
+## 昨天沒玩完的每日挑戰已過期，直接捨棄（掃描所有遊戲）
 func _discard_stale_daily() -> void:
-	var st := SaveManager.get_in_progress()
-	if not st.is_empty() and String(st.get("mode", "")) == "daily" \
-			and String(st.get("date", "")) != Daily.today_id():
-		SaveManager.set_in_progress({})
+	for game in GAME_NAMES:
+		var st := SaveManager.get_in_progress(game)
+		if not st.is_empty() and String(st.get("mode", "")) == "daily" \
+				and String(st.get("date", "")) != Daily.today_id():
+			SaveManager.set_in_progress(game, {})
 
 
 func _build_ui() -> void:
@@ -138,61 +139,80 @@ func _start_daily() -> void:
 			Main.instance.open_reversi(cfg)
 
 
+## 進行中的遊戲：每款遊戲各自一列（v0.8 起可同時掛多局）
 func _build_continue_card(col: VBoxContainer) -> void:
-	var st := SaveManager.get_in_progress()
-	var game := String(st.get("game", ""))
-	if not GAME_NAMES.has(game):
+	var active: Array[String] = []
+	for game in GAME_NAMES:
+		if not SaveManager.get_in_progress(game).is_empty():
+			active.append(game)
+	if active.is_empty():
 		return
+
 	var inner := _card(col)
 	var head := Label.new()
 	head.text = "進行中的遊戲"
 	head.add_theme_font_size_override("font_size", 34)
 	inner.add_child(head)
 
-	var mode_text: String = GAME_NAMES[game]
-	if String(st.get("mode", "")) == "daily":
-		mode_text = "每日挑戰・" + mode_text
-	var detail: String
+	for game in active:
+		var st := SaveManager.get_in_progress(game)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		inner.add_child(row)
+
+		var mode_text: String = GAME_NAMES[game]
+		if String(st.get("mode", "")) == "daily":
+			mode_text = "每日挑戰・" + mode_text
+		var detail := _progress_detail(game, st)
+		var desc := Label.new()
+		if NO_DIFFICULTY.has(game):
+			desc.text = "%s・%s" % [mode_text, detail]
+		else:
+			desc.text = "%s・%s・%s" % [
+				mode_text,
+				_difficulty_label(game, int(st.get("difficulty", 0))).split(" ")[0],
+				detail,
+			]
+		desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
+		desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(desc)
+
+		var btn := Button.new()
+		btn.text = "繼續"
+		btn.pressed.connect(_resume_game.bind(game))
+		row.add_child(btn)
+
+
+func _progress_detail(game: String, st: Dictionary) -> String:
 	match game:
 		"sudoku", "minesweeper":
-			detail = SudokuScreen.format_time(int(st.get("seconds", 0)))
+			return SudokuScreen.format_time(int(st.get("seconds", 0)))
 		"gomoku":
-			detail = "第 %d 手" % ((st.get("moves", []) as Array).size() + 1)
+			return "第 %d 手" % ((st.get("moves", []) as Array).size() + 1)
 		"game2048":
-			detail = "分數 %d" % int(st.get("score", 0))
+			return "分數 %d" % int(st.get("score", 0))
 		"solitaire":
-			detail = "%d 步" % int(st.get("moves", 0))
+			return "%d 步" % int(st.get("moves", 0))
 		_:
 			var c := ReversiLogic.count(ReversiScreen._to_int_array(st.get("board", [])))
-			detail = "黑 %d：%d 白" % [c[0], c[1]]
-	var desc := Label.new()
-	if NO_DIFFICULTY.has(game):
-		desc.text = "%s・%s" % [mode_text, detail]
-	else:
-		desc.text = "%s・%s・%s" % [
-			mode_text,
-			_difficulty_label(game, int(st.get("difficulty", 0))).split(" ")[0],
-			detail,
-		]
-	desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
-	inner.add_child(desc)
+			return "黑 %d：%d 白" % [c[0], c[1]]
 
-	var btn := Button.new()
-	btn.text = "繼續"
+
+func _resume_game(game: String) -> void:
+	var cfg := {"mode": "resume"}
 	match game:
 		"sudoku":
-			btn.pressed.connect(func() -> void: Main.instance.open_sudoku({"mode": "resume"}))
+			Main.instance.open_sudoku(cfg)
 		"gomoku":
-			btn.pressed.connect(func() -> void: Main.instance.open_gomoku({"mode": "resume"}))
+			Main.instance.open_gomoku(cfg)
 		"minesweeper":
-			btn.pressed.connect(func() -> void: Main.instance.open_minesweeper({"mode": "resume"}))
+			Main.instance.open_minesweeper(cfg)
 		"game2048":
-			btn.pressed.connect(func() -> void: Main.instance.open_game2048({"mode": "resume"}))
+			Main.instance.open_game2048(cfg)
 		"solitaire":
-			btn.pressed.connect(func() -> void: Main.instance.open_solitaire({"mode": "resume"}))
+			Main.instance.open_solitaire(cfg)
 		_:
-			btn.pressed.connect(func() -> void: Main.instance.open_reversi({"mode": "resume"}))
-	inner.add_child(btn)
+			Main.instance.open_reversi(cfg)
 
 
 func _build_games(col: VBoxContainer) -> void:

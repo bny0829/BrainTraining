@@ -22,7 +22,7 @@ var _undo_btn: Button
 func _ready() -> void:
 	_build_ui()
 	if String(config.get("mode", "normal")) == "resume":
-		_restore(SaveManager.get_in_progress())
+		_restore(SaveManager.get_in_progress("game2048"))
 	else:
 		_new_game()
 
@@ -188,7 +188,7 @@ func _game_over() -> void:
 	if reached_2048:
 		s["won"] = int(s.get("won", 0)) + 1
 	SaveManager.save()
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("game2048", {})
 	Achievements.refresh()
 	OverlayDialog.open(self, "無法再移動", "分數：%d・最大磚塊：%d" % [
 		score, Game2048Logic.max_tile(board.grid)
@@ -254,7 +254,7 @@ func _refresh() -> void:
 func _save_state() -> void:
 	if finished:
 		return
-	SaveManager.set_in_progress({
+	SaveManager.set_in_progress("game2048", {
 		"game": "game2048",
 		"mode": "normal",
 		"difficulty": 0,

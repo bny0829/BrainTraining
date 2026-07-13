@@ -32,7 +32,7 @@ func _ready() -> void:
 	mode = String(config.get("mode", "normal"))
 	_build_ui()
 	if mode == "resume":
-		_restore(SaveManager.get_in_progress())
+		_restore(SaveManager.get_in_progress("sudoku"))
 	else:
 		difficulty = int(config.get("difficulty", SudokuLogic.Difficulty.EASY))
 		_new_game()
@@ -361,7 +361,7 @@ func _check_win() -> void:
 	finished = true
 	Sfx.play("win")
 	SaveManager.record_sudoku_result(difficulty, int(seconds), true)
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("sudoku", {})
 	var lines := "難度：%s\n時間：%s" % [
 		SudokuLogic.DIFFICULTY_TEXT[difficulty], format_time(int(seconds))
 	]
@@ -381,7 +381,7 @@ func _game_over() -> void:
 	finished = true
 	Sfx.play("lose")
 	SaveManager.record_sudoku_result(difficulty, int(seconds), false)
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("sudoku", {})
 	OverlayDialog.open(self, "挑戰失敗", "錯誤已達 %d 次" % MAX_MISTAKES, [
 		{"text": "重新開始", "action": _restart_same},
 		{"text": "回首頁", "action": _go_home, "secondary": true},
@@ -429,7 +429,7 @@ func _update_numberpad() -> void:
 func _save_state() -> void:
 	if finished:
 		return
-	SaveManager.set_in_progress({
+	SaveManager.set_in_progress("sudoku", {
 		"game": "sudoku",
 		"mode": mode,
 		"difficulty": difficulty,
