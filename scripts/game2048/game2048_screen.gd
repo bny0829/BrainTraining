@@ -22,7 +22,7 @@ var _undo_btn: Button
 func _ready() -> void:
 	_build_ui()
 	if String(config.get("mode", "normal")) == "resume":
-		_restore(SaveManager.get_in_progress())
+		_restore(SaveManager.get_in_progress("game2048"))
 	else:
 		_new_game()
 
@@ -36,6 +36,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		_move(Game2048Logic.DIR_UP)
 	elif event.is_action_pressed("ui_down"):
 		_move(Game2048Logic.DIR_DOWN)
+
+
+# 整個畫面（棋盤以外的空白區域）也接受滑動手勢，
+# 只要不是落在按鈕上的點擊都能操作，觸控範圍大幅加大
+var _press_pos := Vector2.ZERO
+var _tracking := false
+
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_press_pos = event.position
+			_tracking = true
+		elif _tracking:
+			_tracking = false
+			var d: Vector2 = event.position - _press_pos
+			if d.length() >= Game2048Board.SWIPE_MIN_PX:
+				if absf(d.x) > absf(d.y):
+					_move(Game2048Logic.DIR_RIGHT if d.x > 0 else Game2048Logic.DIR_LEFT)
+				else:
+					_move(Game2048Logic.DIR_DOWN if d.y > 0 else Game2048Logic.DIR_UP)
 
 
 # ---- UI 建構 ----
@@ -116,6 +137,7 @@ func _build_ui() -> void:
 func _spacer() -> Control:
 	var s := Control.new()
 	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	s.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 讓滑動手勢穿透到畫面層
 	return s
 
 
@@ -171,7 +193,8 @@ func _move(dir: int) -> void:
 		reached_2048 = true
 		_save_state()
 		Sfx.play("win")
-		OverlayDialog.open(self, "達成 2048！", "分數：%d\n可以繼續挑戰更大的數字" % score, [
+		OverlayDialog.open(self, "達成 2048！",
+				tr("分數：%d") % score + "\n" + tr("可以繼續挑戰更大的數字"), [
 			{"text": "繼續挑戰"},
 			{"text": "回首頁", "action": _go_home, "secondary": true},
 		])
@@ -188,9 +211,9 @@ func _game_over() -> void:
 	if reached_2048:
 		s["won"] = int(s.get("won", 0)) + 1
 	SaveManager.save()
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("game2048", {})
 	Achievements.refresh()
-	OverlayDialog.open(self, "無法再移動", "分數：%d・最大磚塊：%d" % [
+	OverlayDialog.open(self, "無法再移動", tr("分數：%d・最大磚塊：%d") % [
 		score, Game2048Logic.max_tile(board.grid)
 	], [
 		{"text": "再來一局", "action": _new_game},
@@ -246,15 +269,15 @@ func _go_home() -> void:
 # ---- 顯示與存檔 ----
 
 func _refresh() -> void:
-	_score_label.text = "分數 %d" % score
-	_best_label.text = "最佳 %d" % int(SaveManager.section("game2048_stats").get("best_score", 0))
+	_score_label.text = tr("分數 %d") % score
+	_best_label.text = tr("最佳 %d") % int(SaveManager.section("game2048_stats").get("best_score", 0))
 	_undo_btn.disabled = finished or _undo_snapshot.is_empty()
 
 
 func _save_state() -> void:
 	if finished:
 		return
-	SaveManager.set_in_progress({
+	SaveManager.set_in_progress("game2048", {
 		"game": "game2048",
 		"mode": "normal",
 		"difficulty": 0,

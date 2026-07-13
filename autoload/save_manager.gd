@@ -26,6 +26,17 @@ func reload() -> void:
 			var parsed: Variant = JSON.parse_string(f.get_as_text())
 			if parsed is Dictionary:
 				data = parsed
+	_migrate_in_progress()
+
+
+## v0.7 以前全平台只有一格進行中存檔（"in_progress"），v0.8 起每款遊戲各自一格。
+## 舊存檔自動搬到新結構，玩家進度不會遺失。
+func _migrate_in_progress() -> void:
+	var old: Variant = data.get("in_progress")
+	if old is Dictionary and (old as Dictionary).has("game"):
+		section("in_progress_games")[String(old["game"])] = old
+		data.erase("in_progress")
+		save()
 
 
 func save() -> void:
@@ -41,19 +52,24 @@ func section(key: String) -> Dictionary:
 	return data[key]
 
 
-# ---- 進行中的遊戲（全平台同時只保留一局） ----
+# ---- 進行中的遊戲（v0.8 起每款遊戲各自一格，可同時掛多局） ----
 
-func get_in_progress() -> Dictionary:
-	var v: Variant = data.get("in_progress")
-	return v if v is Dictionary else {}
+func get_in_progress(game: String) -> Dictionary:
+	var all: Variant = data.get("in_progress_games")
+	if all is Dictionary:
+		var v: Variant = (all as Dictionary).get(game)
+		if v is Dictionary:
+			return v
+	return {}
 
 
-## 傳入空字典代表清除
-func set_in_progress(state: Dictionary) -> void:
+## 傳入空字典代表清除該遊戲的進度
+func set_in_progress(game: String, state: Dictionary) -> void:
+	var all := section("in_progress_games")
 	if state.is_empty():
-		data.erase("in_progress")
+		all.erase(game)
 	else:
-		data["in_progress"] = state
+		all[game] = state
 	save()
 
 

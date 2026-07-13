@@ -55,6 +55,23 @@ func _ready() -> void:
 	)
 	row.add_child(toggle)
 
+	# 語言
+	var lang_card := _card(col)
+	var lang_row := HBoxContainer.new()
+	lang_card.add_child(lang_row)
+	var lang_label := Label.new()
+	lang_label.text = "語言"
+	lang_label.add_theme_font_size_override("font_size", 30)
+	lang_row.add_child(lang_label)
+	var lspacer := Control.new()
+	lspacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lang_row.add_child(lspacer)
+	var lang_btn := Button.new()
+	lang_btn.custom_minimum_size = Vector2(220, 0)
+	lang_btn.text = _language_text(String(SaveManager.section("settings").get("language", "")))
+	lang_btn.pressed.connect(_cycle_language)
+	lang_row.add_child(lang_btn)
+
 	# 資料
 	var data_card := _card(col)
 	var reset := Button.new()
@@ -76,6 +93,31 @@ func _ready() -> void:
 	version.text = "Brain Club v%s" % String(ProjectSettings.get_setting("application/config/version", "dev"))
 	version.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 	about.add_child(version)
+
+
+## 語言循環：跟隨系統 → 中文 → English
+const LANGUAGES := ["", "zh_TW", "en"]
+
+
+func _language_text(code: String) -> String:
+	match code:
+		"zh_TW":
+			return "中文"
+		"en":
+			return "English"
+		_:
+			return tr("跟隨系統")
+
+
+func _cycle_language() -> void:
+	var settings := SaveManager.section("settings")
+	var current := String(settings.get("language", ""))
+	var next: String = LANGUAGES[(LANGUAGES.find(current) + 1) % LANGUAGES.size()]
+	settings["language"] = next
+	SaveManager.save()
+	Main.apply_locale()
+	# 重建畫面讓新語言立即生效
+	Main.instance.open_settings()
 
 
 func _confirm_reset() -> void:

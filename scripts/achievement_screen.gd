@@ -25,7 +25,7 @@ func _ready() -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(spacer)
 	var title := Label.new()
-	title.text = "成就（%d / %d）" % [Achievements.unlocked_count(), Achievements.total_count()]
+	title.text = tr("成就（%d / %d）") % [Achievements.unlocked_count(), Achievements.total_count()]
 	title.add_theme_font_size_override("font_size", 34)
 	top.add_child(title)
 	var spacer2 := Control.new()
@@ -51,6 +51,7 @@ func _achievement_card(list: VBoxContainer, def: Dictionary) -> void:
 	var done := Achievements.is_unlocked(id)
 
 	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS  # 讓捲動手勢穿透卡片
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.add_child(panel)
 
@@ -64,13 +65,13 @@ func _achievement_card(list: VBoxContainer, def: Dictionary) -> void:
 	margin.add_child(inner)
 
 	var name_label := Label.new()
-	name_label.text = String(def["name"])
+	name_label.text = tr(String(def["name"]))
 	name_label.add_theme_font_size_override("font_size", 30)
 	name_label.add_theme_color_override("font_color", AppTheme.PRIMARY_DARK if done else AppTheme.TEXT_MUTED)
 	inner.add_child(name_label)
 
 	var desc := Label.new()
-	desc.text = String(def["desc"])
+	desc.text = tr(String(def["desc"]))
 	desc.add_theme_font_size_override("font_size", 22)
 	desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 	inner.add_child(desc)
@@ -78,7 +79,7 @@ func _achievement_card(list: VBoxContainer, def: Dictionary) -> void:
 	var status := Label.new()
 	status.add_theme_font_size_override("font_size", 22)
 	if done:
-		status.text = "已解鎖・" + Achievements.unlock_date(id)
+		status.text = tr("已解鎖・%s") % Achievements.unlock_date(id)
 		status.add_theme_color_override("font_color", AppTheme.SUCCESS)
 	else:
 		status.text = "未解鎖"

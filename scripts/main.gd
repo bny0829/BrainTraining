@@ -13,7 +13,17 @@ func _enter_tree() -> void:
 	instance = self
 
 
+## 套用玩家選擇的語言（空字串 = 跟隨裝置系統語言）
+static func apply_locale() -> void:
+	var lang := String(SaveManager.section("settings").get("language", ""))
+	if lang != "":
+		TranslationServer.set_locale(lang)
+	else:
+		TranslationServer.set_locale(OS.get_locale())
+
+
 func _ready() -> void:
+	apply_locale()
 	theme = AppTheme.build()
 	var bg := ColorRect.new()
 	bg.color = AppTheme.BG
@@ -107,6 +117,12 @@ func open_solitaire(config: Dictionary) -> void:
 	_switch(screen)
 
 
+func open_freecell(config: Dictionary) -> void:
+	var screen := FreecellScreen.new()
+	screen.config = config
+	_switch(screen)
+
+
 func open_achievements() -> void:
 	_switch(AchievementScreen.new())
 
@@ -117,7 +133,11 @@ func open_settings() -> void:
 
 func _on_node_added(node: Node) -> void:
 	if node is Button:
-		(node as Button).pressed.connect(func() -> void: Sfx.play("tap"))
+		var btn := node as Button
+		btn.pressed.connect(func() -> void: Sfx.play("tap"))
+		# 穿透模式：按鈕照常可點，但拖曳手勢能繼續傳給外層捲動容器，
+		# 修正「手指按在按鈕上就無法捲動首頁」的問題
+		btn.mouse_filter = Control.MOUSE_FILTER_PASS
 
 
 func _switch(screen: Control) -> void:

@@ -32,7 +32,7 @@ func _ready() -> void:
 	mode = String(config.get("mode", "normal"))
 	_build_ui()
 	if mode == "resume":
-		_restore(SaveManager.get_in_progress())
+		_restore(SaveManager.get_in_progress("sudoku"))
 	else:
 		difficulty = int(config.get("difficulty", SudokuLogic.Difficulty.EASY))
 		_new_game()
@@ -361,16 +361,15 @@ func _check_win() -> void:
 	finished = true
 	Sfx.play("win")
 	SaveManager.record_sudoku_result(difficulty, int(seconds), true)
-	SaveManager.set_in_progress({})
-	var lines := "難度：%s\n時間：%s" % [
-		SudokuLogic.DIFFICULTY_TEXT[difficulty], format_time(int(seconds))
-	]
+	SaveManager.set_in_progress("sudoku", {})
+	var lines := tr("難度：%s") % tr(SudokuLogic.DIFFICULTY_TEXT[difficulty]) \
+			+ "\n" + tr("時間：%s") % format_time(int(seconds))
 	if hints_used > 0:
-		lines += "\n提示：%d 次" % hints_used
+		lines += "\n" + tr("提示：%d 次") % hints_used
 	var buttons: Array = []
 	if mode == "daily":
 		Daily.mark_completed()
-		lines += "\n連續完成：%d 天" % Daily.streak()
+		lines += "\n" + tr("連續完成：%d 天") % Daily.streak()
 	else:
 		buttons.append({"text": "再來一局", "action": _play_again})
 	buttons.append({"text": "回首頁", "action": _go_home, "secondary": mode != "daily"})
@@ -381,8 +380,8 @@ func _game_over() -> void:
 	finished = true
 	Sfx.play("lose")
 	SaveManager.record_sudoku_result(difficulty, int(seconds), false)
-	SaveManager.set_in_progress({})
-	OverlayDialog.open(self, "挑戰失敗", "錯誤已達 %d 次" % MAX_MISTAKES, [
+	SaveManager.set_in_progress("sudoku", {})
+	OverlayDialog.open(self, "挑戰失敗", tr("錯誤已達 %d 次") % MAX_MISTAKES, [
 		{"text": "重新開始", "action": _restart_same},
 		{"text": "回首頁", "action": _go_home, "secondary": true},
 	])
@@ -399,8 +398,8 @@ func _go_home() -> void:
 # ---- 顯示更新 ----
 
 func _refresh_all() -> void:
-	var mode_text := "每日挑戰" if mode == "daily" else "數獨"
-	_title_label.text = "%s・%s" % [mode_text, SudokuLogic.DIFFICULTY_TEXT[difficulty]]
+	var mode_text := tr("每日挑戰") if mode == "daily" else tr("數獨")
+	_title_label.text = "%s・%s" % [mode_text, tr(SudokuLogic.DIFFICULTY_TEXT[difficulty])]
 	_update_info()
 	_update_numberpad()
 	_last_timer_text = format_time(int(seconds))
@@ -409,7 +408,7 @@ func _refresh_all() -> void:
 
 
 func _update_info() -> void:
-	_mistakes_label.text = "錯誤 %d / %d" % [mistakes, MAX_MISTAKES]
+	_mistakes_label.text = tr("錯誤 %d / %d") % [mistakes, MAX_MISTAKES]
 	if mistakes > 0:
 		_mistakes_label.add_theme_color_override("font_color", AppTheme.ERROR)
 
@@ -429,7 +428,7 @@ func _update_numberpad() -> void:
 func _save_state() -> void:
 	if finished:
 		return
-	SaveManager.set_in_progress({
+	SaveManager.set_in_progress("sudoku", {
 		"game": "sudoku",
 		"mode": mode,
 		"difficulty": difficulty,

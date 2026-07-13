@@ -26,7 +26,7 @@ func _ready() -> void:
 	mode = String(config.get("mode", "normal"))
 	_build_ui()
 	if mode == "resume":
-		_restore(SaveManager.get_in_progress())
+		_restore(SaveManager.get_in_progress("gomoku"))
 	else:
 		difficulty = int(config.get("difficulty", GomokuLogic.Difficulty.BEGINNER))
 		_new_game()
@@ -238,14 +238,14 @@ func _finish(player_won: bool) -> void:
 	finished = true
 	Sfx.play("win" if player_won else "lose")
 	SaveManager.record_result("gomoku", difficulty, player_won)
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("gomoku", {})
 	_refresh()
 	var title := "你贏了！" if player_won else "AI 獲勝"
-	var msg := "難度：%s・共 %d 手" % [GomokuLogic.DIFFICULTY_TEXT[difficulty], moves.size()]
+	var msg := tr("難度：%s・共 %d 手") % [tr(GomokuLogic.DIFFICULTY_TEXT[difficulty]), moves.size()]
 	var buttons: Array = []
 	if mode == "daily" and player_won:
 		Daily.mark_completed()
-		msg += "\n每日挑戰完成！連續 %d 天" % Daily.streak()
+		msg += "\n" + tr("每日挑戰完成！連續 %d 天") % Daily.streak()
 	else:
 		buttons.append({"text": "再來一局", "action": _new_game})
 	buttons.append({"text": "回首頁", "action": _go_home, "secondary": not buttons.is_empty()})
@@ -255,7 +255,7 @@ func _finish(player_won: bool) -> void:
 func _finish_draw() -> void:
 	finished = true
 	SaveManager.record_result("gomoku", difficulty, false)
-	SaveManager.set_in_progress({})
+	SaveManager.set_in_progress("gomoku", {})
 	_refresh()
 	OverlayDialog.open(self, "平手", "棋盤已下滿", [
 		{"text": "再來一局", "action": _new_game},
@@ -271,21 +271,21 @@ func _go_home() -> void:
 
 func _refresh() -> void:
 	board.queue_redraw()
-	var mode_text := "每日挑戰・五子棋" if mode == "daily" else "五子棋"
-	_title_label.text = "%s・%s" % [mode_text, GomokuLogic.DIFFICULTY_TEXT[difficulty]]
+	var mode_text := tr("每日挑戰・五子棋") if mode == "daily" else tr("五子棋")
+	_title_label.text = "%s・%s" % [mode_text, tr(GomokuLogic.DIFFICULTY_TEXT[difficulty])]
 	if finished:
-		_info_label.text = "對局結束・共 %d 手" % moves.size()
+		_info_label.text = tr("對局結束・共 %d 手") % moves.size()
 	elif _ai_pending:
-		_info_label.text = "AI 思考中…"
+		_info_label.text = tr("AI 思考中…")
 	else:
-		_info_label.text = "你的回合（黑棋）・第 %d 手" % (moves.size() + 1)
+		_info_label.text = tr("你的回合（黑棋）・第 %d 手") % (moves.size() + 1)
 	_undo_btn.disabled = finished or _ai_pending or moves.size() < 2
 
 
 func _save_state() -> void:
 	if finished:
 		return
-	SaveManager.set_in_progress({
+	SaveManager.set_in_progress("gomoku", {
 		"game": "gomoku",
 		"mode": mode,
 		"difficulty": difficulty,
