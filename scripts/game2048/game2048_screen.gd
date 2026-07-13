@@ -213,7 +213,7 @@ func _game_over() -> void:
 	SaveManager.save()
 	SaveManager.set_in_progress("game2048", {})
 	Achievements.refresh()
-	OverlayDialog.open(self, "無法再移動", tr("分數：%d・最大磚塊：%d") % [
+	OverlayDialog.open(self, "無法再移動", tr("分數：%d·最大磚塊：%d") % [
 		score, Game2048Logic.max_tile(board.grid)
 	], [
 		{"text": "再來一局", "action": _new_game},

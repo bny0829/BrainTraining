@@ -17,13 +17,13 @@ Brain Club,Brain Club
 踩地雷,Minesweeper
 接龍,Solitaire
 新接龍,FreeCell
-4 種難度・筆記・提示,"4 difficulties, notes & hints"
-AI 對戰・4 級難度,"Play vs AI, 4 levels"
-AI 對戰・合法手提示,"Play vs AI, move hints"
-首挖安全・長按插旗,"Safe first dig, long-press flag"
-滑動合併・挑戰高分,Swipe to merge tiles
-選牌移動・自動收尾,Tap to move & auto-finish
-全明牌・幾乎必有解,"All face-up, almost always solvable"
+4 種難度·筆記·提示,"4 difficulties, notes & hints"
+AI 對戰·4 級難度,"Play vs AI, 4 levels"
+AI 對戰·合法手提示,"Play vs AI, move hints"
+首挖安全·長按插旗,"Safe first dig, long-press flag"
+滑動合併·挑戰高分,Swipe to merge tiles
+選牌移動·自動收尾,Tap to move & auto-finish
+全明牌·幾乎必有解,"All face-up, almost always solvable"
 數獨戰績,Sudoku Stats
 五子棋戰績,Gomoku Stats
 黑白棋戰績,Reversi Stats
@@ -37,7 +37,7 @@ AI 對戰・合法手提示,"Play vs AI, move hints"
 %s 最佳：%s,%s best: %s
 %s 勝場：%d,%s wins: %d
 %s 成功：%d,%s cleared: %d
-最高分：%d・最大磚塊：%d,"Best score: %d, best tile: %d"
+最高分：%d·最大磚塊：%d,"Best score: %d, best tile: %d"
 完整場數：%d,Games finished: %d
 最佳時間：%s,Best time: %s
 第 %d 手,Move %d
@@ -48,7 +48,7 @@ AI 對戰・合法手提示,"Play vs AI, move hints"
 選擇 AI 難度,Select AI Level
 你執黑棋先手,You play black and move first
 取消,Cancel
-%s %s（%d×%d・%d 雷）,%s %s (%dx%d・%d mines)
+%s %s（%d×%d·%d 雷）,%s %s (%dx%d·%d mines)
 簡單,Easy
 普通,Normal
 困難,Hard
@@ -78,22 +78,22 @@ AI 對戰・合法手提示,"Play vs AI, move hints"
 悔棋,Undo
 你贏了！,You Win!
 AI 獲勝,AI Wins
-難度：%s・共 %d 手,Difficulty: %s・%d moves
+難度：%s·共 %d 手,Difficulty: %s·%d moves
 每日挑戰完成！連續 %d 天,Daily challenge done! %d-day streak
-你的回合（黑棋）・第 %d 手,Your turn (Black)・Move %d
+你的回合（黑棋）·第 %d 手,Your turn (Black)·Move %d
 AI 思考中…,AI is thinking...
-對局結束・共 %d 手,Game over・%d moves
-每日挑戰・數獨,Daily・Sudoku
-每日挑戰・五子棋,Daily・Gomoku
-每日挑戰・黑白棋,Daily・Reversi
-每日挑戰・踩地雷,Daily・Minesweeper
-每日挑戰・新接龍,Daily・FreeCell
+對局結束·共 %d 手,Game over·%d moves
+每日挑戰·數獨,Daily·Sudoku
+每日挑戰·五子棋,Daily·Gomoku
+每日挑戰·黑白棋,Daily·Reversi
+每日挑戰·踩地雷,Daily·Minesweeper
+每日挑戰·新接龍,Daily·FreeCell
 跳過回合,Turn Skipped
 你,You
 %s無子可下，由%s繼續,"%s has no valid move, %s continues"
 確定,OK
 平手,Draw
-黑 %d：%d 白・難度 %s,Black %d : %d White・%s
+黑 %d：%d 白·難度 %s,Black %d : %d White·%s
 你的回合（黑棋）,Your turn (Black)
 對局結束,Game over
 棋盤已下滿,The board is full
@@ -102,10 +102,10 @@ AI 思考中…,AI is thinking...
 模式：插旗,Mode: Flag
 提示：長按格子可快速插旗,Tip: long-press a cell to flag
 踩到地雷！,Boom!
-存活 %s・難度 %s,Survived %s・%s
+存活 %s·難度 %s,Survived %s·%s
 再試一次,Try Again
 掃雷成功！,Board Cleared!
-時間：%s・難度 %s,Time %s・%s
+時間：%s·難度 %s,Time %s·%s
 最佳 %d,Best %d
 滑動棋盤合併相同數字,Swipe to merge matching tiles
 達成 2048！,You made 2048!
@@ -113,15 +113,15 @@ AI 思考中…,AI is thinking...
 可以繼續挑戰更大的數字,Keep going for even bigger tiles
 繼續挑戰,Keep Going
 無法再移動,No More Moves
-分數：%d・最大磚塊：%d,Score: %d・Best tile: %d
+分數：%d·最大磚塊：%d,Score: %d·Best tile: %d
 步數 %d,Moves %d
-點牌選取 → 點目的地移動・連點兩下自動移動,Tap a card → tap destination・double-tap to auto-move
+點牌選取 → 點目的地移動·連點兩下自動移動,Tap a card → tap destination·double-tap to auto-move
 自動收尾,Auto-finish
 重新發牌,New Deal
 重新發牌？,New deal?
 恭喜完成！,Congratulations!
-時間：%s・共 %d 步,Time %s・%d moves
-點牌選取 → 點目的地移動・左上為暫存格,Tap a card → tap destination・free cells at top-left
+時間：%s·共 %d 步,Time %s·%d moves
+點牌選取 → 點目的地移動·左上為暫存格,Tap a card → tap destination·free cells at top-left
 收基礎堆,To Foundations
 音效,Sound
 開啟,On
@@ -134,7 +134,7 @@ AI 思考中…,AI is thinking...
 戰績、成就與連續天數將全部清除，無法復原,"All stats, achievements and streaks will be erased. This cannot be undone."
 確認重置,Confirm Reset
 成就（%d / %d）,Achievements (%d / %d)
-已解鎖・%s,Unlocked・%s
+已解鎖·%s,Unlocked·%s
 未解鎖,Locked
 成就解鎖！,Achievement Unlocked!
 數獨啟蒙,First Steps

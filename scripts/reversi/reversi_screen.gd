@@ -275,7 +275,7 @@ func _finish() -> void:
 		title = "AI 獲勝"
 	else:
 		title = "平手"
-	var msg := tr("黑 %d：%d 白・難度 %s") % [c[0], c[1], tr(ReversiLogic.DIFFICULTY_TEXT[difficulty])]
+	var msg := tr("黑 %d：%d 白·難度 %s") % [c[0], c[1], tr(ReversiLogic.DIFFICULTY_TEXT[difficulty])]
 	var buttons: Array = []
 	if mode == "daily" and player_won:
 		Daily.mark_completed()
@@ -293,8 +293,8 @@ func _go_home() -> void:
 # ---- 顯示與存檔 ----
 
 func _refresh() -> void:
-	var mode_text := tr("每日挑戰・黑白棋") if mode == "daily" else tr("黑白棋")
-	_title_label.text = "%s・%s" % [mode_text, tr(ReversiLogic.DIFFICULTY_TEXT[difficulty])]
+	var mode_text := tr("每日挑戰·黑白棋") if mode == "daily" else tr("黑白棋")
+	_title_label.text = "%s·%s" % [mode_text, tr(ReversiLogic.DIFFICULTY_TEXT[difficulty])]
 	var c := ReversiLogic.count(board.stones)
 	_score_label.text = tr("黑 %d：%d 白") % [c[0], c[1]]
 	if finished:

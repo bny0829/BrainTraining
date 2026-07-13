@@ -103,7 +103,7 @@ func _build_daily_card(col: VBoxContainer) -> void:
 
 	var ch := Daily.today_challenge()
 	var desc := Label.new()
-	desc.text = "%s　%s・%s" % [
+	desc.text = "%s　%s·%s" % [
 		Daily.today_id(),
 		tr(GAME_NAMES[String(ch["game"])]),
 		_difficulty_label(String(ch["game"]), int(ch["difficulty"])),
@@ -166,13 +166,13 @@ func _build_continue_card(col: VBoxContainer) -> void:
 
 		var mode_text: String = tr(GAME_NAMES[game])
 		if String(st.get("mode", "")) == "daily":
-			mode_text = tr("每日挑戰") + "・" + mode_text
+			mode_text = tr("每日挑戰") + "·" + mode_text
 		var detail := _progress_detail(game, st)
 		var desc := Label.new()
 		if NO_DIFFICULTY.has(game):
-			desc.text = "%s・%s" % [mode_text, detail]
+			desc.text = "%s·%s" % [mode_text, detail]
 		else:
-			desc.text = "%s・%s・%s" % [
+			desc.text = "%s·%s·%s" % [
 				mode_text,
 				_difficulty_label(game, int(st.get("difficulty", 0))).split(" ")[0],
 				detail,
@@ -233,13 +233,13 @@ func _build_games(col: VBoxContainer) -> void:
 	grid.add_theme_constant_override("v_separation", 16)
 	col.add_child(grid)
 
-	_game_card(grid, "數獨", "4 種難度・筆記・提示", _pick_sudoku_difficulty)
-	_game_card(grid, "五子棋", "AI 對戰・4 級難度", _pick_gomoku_difficulty)
-	_game_card(grid, "黑白棋", "AI 對戰・合法手提示", _pick_reversi_difficulty)
-	_game_card(grid, "踩地雷", "首挖安全・長按插旗", _pick_minesweeper_difficulty)
-	_game_card(grid, "2048", "滑動合併・挑戰高分", _start_2048)
-	_game_card(grid, "接龍", "選牌移動・自動收尾", _start_solitaire)
-	_game_card(grid, "新接龍", "全明牌・幾乎必有解", _start_freecell)
+	_game_card(grid, "數獨", "4 種難度·筆記·提示", _pick_sudoku_difficulty)
+	_game_card(grid, "五子棋", "AI 對戰·4 級難度", _pick_gomoku_difficulty)
+	_game_card(grid, "黑白棋", "AI 對戰·合法手提示", _pick_reversi_difficulty)
+	_game_card(grid, "踩地雷", "首挖安全·長按插旗", _pick_minesweeper_difficulty)
+	_game_card(grid, "2048", "滑動合併·挑戰高分", _start_2048)
+	_game_card(grid, "接龍", "選牌移動·自動收尾", _start_solitaire)
+	_game_card(grid, "新接龍", "全明牌·幾乎必有解", _start_freecell)
 
 
 func _game_card(grid: GridContainer, game_name: String, desc_text: String, on_start: Callable) -> void:
@@ -328,7 +328,7 @@ func _pick_minesweeper_difficulty() -> void:
 	for d in MinesweeperLogic.Difficulty.values():
 		var cfg: Dictionary = MinesweeperLogic.CONFIG[d]
 		buttons.append({
-			"text": tr("%s %s（%d×%d・%d 雷）") % [
+			"text": tr("%s %s（%d×%d·%d 雷）") % [
 				tr(MinesweeperLogic.DIFFICULTY_TEXT[d]), MinesweeperLogic.DIFFICULTY_STARS[d],
 				int(cfg["w"]), int(cfg["h"]), int(cfg["mines"]),
 			],
@@ -387,7 +387,7 @@ func _build_stats(col: VBoxContainer) -> void:
 
 	var t := SaveManager.stats("game2048")
 	if int(t.get("best_score", 0)) > 0:
-		var text := tr("最高分：%d・最大磚塊：%d") % [int(t.get("best_score", 0)), int(t.get("best_tile", 0))]
+		var text := tr("最高分：%d·最大磚塊：%d") % [int(t.get("best_score", 0)), int(t.get("best_tile", 0))]
 		if int(t.get("played", 0)) > 0:
 			text += "\n" + tr("完整場數：%d") % int(t.get("played", 0))
 		_stats_card(col, "2048 戰績", text)

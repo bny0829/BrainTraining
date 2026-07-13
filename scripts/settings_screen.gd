@@ -69,7 +69,7 @@ func _ready() -> void:
 	var lang_btn := Button.new()
 	lang_btn.custom_minimum_size = Vector2(220, 0)
 	lang_btn.text = _language_text(String(SaveManager.section("settings").get("language", "")))
-	lang_btn.pressed.connect(_cycle_language)
+	lang_btn.pressed.connect(_pick_language)
 	lang_row.add_child(lang_btn)
 
 	# 資料
@@ -95,7 +95,6 @@ func _ready() -> void:
 	about.add_child(version)
 
 
-## 語言循環：跟隨系統 → 中文 → English
 const LANGUAGES := ["", "zh_TW", "en"]
 
 
@@ -109,11 +108,23 @@ func _language_text(code: String) -> String:
 			return tr("跟隨系統")
 
 
-func _cycle_language() -> void:
-	var settings := SaveManager.section("settings")
-	var current := String(settings.get("language", ""))
-	var next: String = LANGUAGES[(LANGUAGES.find(current) + 1) % LANGUAGES.size()]
-	settings["language"] = next
+## 用清單彈窗讓玩家直接選定語言（而非隱藏式循環）：
+## 「跟隨系統」在裝置系統語言剛好是英文時，跟「English」顯示結果完全一樣，
+## 之前用循環按鈕會讓玩家以為切換沒有反應；改成明確列出目前選取的項目就不會混淆。
+func _pick_language() -> void:
+	var current := String(SaveManager.section("settings").get("language", ""))
+	var buttons: Array = []
+	for code in LANGUAGES:
+		var label := _language_text(code)
+		if code == current:
+			label += "  ✓"
+		buttons.append({"text": label, "action": _set_language.bind(code)})
+	buttons.append({"text": "取消", "secondary": true})
+	OverlayDialog.open(self, "選擇語言", "", buttons)
+
+
+func _set_language(code: String) -> void:
+	SaveManager.section("settings")["language"] = code
 	SaveManager.save()
 	Main.apply_locale()
 	# 重建畫面讓新語言立即生效

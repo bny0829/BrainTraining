@@ -399,7 +399,7 @@ func _go_home() -> void:
 
 func _refresh_all() -> void:
 	var mode_text := tr("每日挑戰") if mode == "daily" else tr("數獨")
-	_title_label.text = "%s・%s" % [mode_text, tr(SudokuLogic.DIFFICULTY_TEXT[difficulty])]
+	_title_label.text = "%s·%s" % [mode_text, tr(SudokuLogic.DIFFICULTY_TEXT[difficulty])]
 	_update_info()
 	_update_numberpad()
 	_last_timer_text = format_time(int(seconds))

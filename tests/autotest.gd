@@ -366,12 +366,48 @@ func _run() -> void:
 	Sfx.set_enabled(true)
 	_check(Sfx.enabled(), "音效開啟未生效")
 	await _shot("settings.png")
+	print("[autotest] 設定頁 OK")
+
+	# ---- 多語系（v0.8.1：語言確實切換生效，且選擇彈窗正確標示目前選項）----
+	var st_screen := main.current_screen() as SettingsScreen
+	st_screen._set_language("en")
+	await tree.process_frame
+	_check(TranslationServer.get_locale() == "en", "切換英文未生效")
+	_check(tr("數獨") == "Sudoku", "英文翻譯未生效")
+
+	st_screen = main.current_screen() as SettingsScreen
+	st_screen._set_language("zh_TW")
+	await tree.process_frame
+	_check(TranslationServer.get_locale() == "zh_TW", "切換中文未生效")
+	_check(tr("數獨") == "數獨", "中文應直接顯示原文（無 zh_TW 翻譯表，靠原文回退）")
+
+	st_screen = main.current_screen() as SettingsScreen
+	st_screen._pick_language()
+	await tree.process_frame
+	var dialog_buttons: Array[Button] = []
+	_collect_buttons(st_screen, dialog_buttons)
+	var checked_texts: Array[String] = []
+	for b in dialog_buttons:
+		if b.text.contains("✓"):
+			checked_texts.append(b.text)
+	_check(checked_texts.size() == 1 and checked_texts[0].begins_with("中文"),
+			"語言選擇彈窗未正確標示目前選項（%s）" % str(checked_texts))
+
+	st_screen._set_language("")
+	await tree.process_frame
 	main.goto_home()
 	await tree.process_frame
-	print("[autotest] 設定頁 OK")
+	print("[autotest] 多語系 OK")
 
 	print("[autotest] PASS")
 	get_tree().quit(0)
+
+
+func _collect_buttons(node: Node, out: Array[Button]) -> void:
+	if node is Button:
+		out.append(node)
+	for child in node.get_children():
+		_collect_buttons(child, out)
 
 
 func _wait_for_reversi_ai(rv: ReversiScreen) -> void:
