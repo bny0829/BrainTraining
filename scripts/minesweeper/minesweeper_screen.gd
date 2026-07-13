@@ -250,7 +250,7 @@ func _explode(i: int) -> void:
 	SaveManager.record_result("minesweeper", difficulty, false)
 	SaveManager.set_in_progress("minesweeper", {})
 	_refresh()
-	OverlayDialog.open(self, "踩到地雷！", tr("存活 %s・難度 %s") % [
+	OverlayDialog.open(self, "踩到地雷！", tr("存活 %s·難度 %s") % [
 		SudokuScreen.format_time(int(seconds)), tr(MinesweeperLogic.DIFFICULTY_TEXT[difficulty])
 	], [
 		{"text": "再試一次", "action": _new_game},
@@ -265,7 +265,7 @@ func _win() -> void:
 	SaveManager.record_result("minesweeper", difficulty, true)
 	SaveManager.set_in_progress("minesweeper", {})
 	_refresh()
-	var msg := tr("時間：%s・難度 %s") % [
+	var msg := tr("時間：%s·難度 %s") % [
 		SudokuScreen.format_time(int(seconds)), tr(MinesweeperLogic.DIFFICULTY_TEXT[difficulty])
 	]
 	var buttons: Array = []
@@ -298,8 +298,8 @@ func _go_home() -> void:
 # ---- 顯示與存檔 ----
 
 func _refresh() -> void:
-	var mode_text := tr("每日挑戰・踩地雷") if mode == "daily" else tr("踩地雷")
-	_title_label.text = "%s・%s" % [mode_text, tr(MinesweeperLogic.DIFFICULTY_TEXT[difficulty])]
+	var mode_text := tr("每日挑戰·踩地雷") if mode == "daily" else tr("踩地雷")
+	_title_label.text = "%s·%s" % [mode_text, tr(MinesweeperLogic.DIFFICULTY_TEXT[difficulty])]
 	_mines_label.text = tr("地雷 %d") % maxi(0, mine_count - MinesweeperLogic.flag_count(board.flagged))
 	_last_timer_text = SudokuScreen.format_time(int(seconds))
 	_timer_label.text = _last_timer_text

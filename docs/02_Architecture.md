@@ -102,6 +102,8 @@ Negamax + Alpha-Beta（難度 = 深度 0～3 + 候選寬度 + 隨機性）
 - 解鎖：`Achievements.refresh()` 在戰績寫入與每日完成後被呼叫；新解鎖存入存檔 `achievements` section（id → 日期）並彈出頂部通知。
 - 新增成就 = 在 `all_defs()` 加一筆資料，不用動任何流程。
 - **注意**：autoload 內的程式不能被 `--script` 測試 preload（autoload 識別字在該模式下無法編譯）——可測試的邏輯一律放 `scripts/` 純類別。
+- **多語系陷阱（v0.8.1 修正）**：Godot 的 `internationalization/locale/fallback` 專案設定預設值是 `"en"`。若原文字串就是中文（沒有另外準備 zh_TW 翻譯表），玩家裝置語言只要不是英文，`tr()` 找不到對應語言的翻譯表時會直接套用這個回退語言的翻譯表，而不是顯示原文——導致中文裝置預設反而顯示英文。已在 `project.godot` 明確設定 `locale/fallback="zh_TW"` 修正。日後若新增其他語言的翻譯表，此設定要一併確認。
+- **字元選用陷阱**：組合字串中的分隔符號一律用 `·`（U+00B7 MIDDLE DOT），不要用「・」（U+30FB 日文假名中點）——後者在部分 Android 裝置的內建字型缺字，會顯示成方框亂碼。
 
 ## 六、測試
 

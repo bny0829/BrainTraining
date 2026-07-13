@@ -64,7 +64,7 @@ func _build_ui() -> void:
 	top.add_child(back)
 	top.add_child(_spacer())
 	var title := Label.new()
-	title.text = "每日挑戰・新接龍" if mode == "daily" else "新接龍"
+	title.text = "每日挑戰·新接龍" if mode == "daily" else "新接龍"
 	title.add_theme_font_size_override("font_size", 34)
 	top.add_child(title)
 	top.add_child(_spacer())
@@ -90,7 +90,7 @@ func _build_ui() -> void:
 	col.add_child(board)
 
 	var hint := Label.new()
-	hint.text = "點牌選取 → 點目的地移動・左上為暫存格"
+	hint.text = "點牌選取 → 點目的地移動·左上為暫存格"
 	hint.add_theme_font_size_override("font_size", 20)
 	hint.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 	col.add_child(hint)
@@ -397,7 +397,7 @@ func _win() -> void:
 	SaveManager.save()
 	SaveManager.set_in_progress("freecell", {})
 	_refresh()
-	var msg := tr("時間：%s・共 %d 步") % [SudokuScreen.format_time(int(seconds)), moves]
+	var msg := tr("時間：%s·共 %d 步") % [SudokuScreen.format_time(int(seconds)), moves]
 	var buttons: Array = []
 	if mode == "daily":
 		Daily.mark_completed()

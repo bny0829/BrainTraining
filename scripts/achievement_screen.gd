@@ -79,7 +79,7 @@ func _achievement_card(list: VBoxContainer, def: Dictionary) -> void:
 	var status := Label.new()
 	status.add_theme_font_size_override("font_size", 22)
 	if done:
-		status.text = tr("已解鎖・%s") % Achievements.unlock_date(id)
+		status.text = tr("已解鎖·%s") % Achievements.unlock_date(id)
 		status.add_theme_color_override("font_color", AppTheme.SUCCESS)
 	else:
 		status.text = "未解鎖"
