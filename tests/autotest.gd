@@ -174,6 +174,7 @@ func _run() -> void:
 	await tree.process_frame
 	_check(main.current_screen() is AchievementScreen, "成就畫面未建立")
 	_check(Achievements.unlocked_count() >= 1, "成就計數錯誤")
+	await _shot("achievements.png")
 	print("[autotest] 成就 OK")
 
 	# ---- 每日挑戰設定 ----

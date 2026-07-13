@@ -68,12 +68,16 @@ func _achievement_card(list: VBoxContainer, def: Dictionary) -> void:
 	name_label.text = tr(String(def["name"]))
 	name_label.add_theme_font_size_override("font_size", 30)
 	name_label.add_theme_color_override("font_color", AppTheme.PRIMARY_DARK if done else AppTheme.TEXT_MUTED)
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.custom_minimum_size = Vector2(1, 0)
 	inner.add_child(name_label)
 
 	var desc := Label.new()
 	desc.text = tr(String(def["desc"]))
 	desc.add_theme_font_size_override("font_size", 22)
 	desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.custom_minimum_size = Vector2(1, 0)
 	inner.add_child(desc)
 
 	var status := Label.new()

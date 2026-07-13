@@ -44,6 +44,8 @@ static func open(parent: Node, title: String, message: String, buttons: Array) -
 	for b in buttons:
 		var btn := Button.new()
 		btn.text = String(b.get("text", ""))
+		# 截斷過長文字：避免英文翻譯（例如踩地雷難度選項）把整個彈窗撐寬到超出螢幕
+		btn.clip_text = true
 		if bool(b.get("secondary", false)):
 			AppTheme.style_secondary(btn)
 		var action: Variant = b.get("action")

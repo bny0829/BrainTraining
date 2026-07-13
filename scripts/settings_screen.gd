@@ -85,6 +85,8 @@ func _ready() -> void:
 	hint.text = "戰績、成就與連續天數將全部清除，無法復原"
 	hint.add_theme_font_size_override("font_size", 20)
 	hint.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.custom_minimum_size = Vector2(1, 0)
 	data_card.add_child(hint)
 
 	# 版本

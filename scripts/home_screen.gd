@@ -65,24 +65,29 @@ func _difficulty_label(game: String, d: int) -> String:
 
 
 func _build_header(col: VBoxContainer) -> void:
-	var row := HBoxContainer.new()
-	col.add_child(row)
+	# 標題獨立一行；成就／設定另起一行並可各自截斷省略號，
+	# 避免英文翻譯較長時把按鈕擠出螢幕外（曾在 0.8.1 實測發生）。
 	var title := Label.new()
 	title.text = "Brain Club"
 	title.add_theme_font_size_override("font_size", 52)
 	title.add_theme_color_override("font_color", AppTheme.PRIMARY_DARK)
-	row.add_child(title)
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(spacer)
+	col.add_child(title)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	col.add_child(row)
 	var ach := Button.new()
 	ach.text = tr("成就 %d/%d") % [Achievements.unlocked_count(), Achievements.total_count()]
 	AppTheme.style_secondary(ach)
+	ach.clip_text = true
+	ach.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ach.pressed.connect(func() -> void: Main.instance.open_achievements())
 	row.add_child(ach)
 	var settings := Button.new()
 	settings.text = "設定"
 	AppTheme.style_secondary(settings)
+	settings.clip_text = true
+	settings.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	settings.pressed.connect(func() -> void: Main.instance.open_settings())
 	row.add_child(settings)
 
@@ -91,6 +96,7 @@ func _build_header(col: VBoxContainer) -> void:
 	subtitle.text = Daily.today_id() + ("　" + tr("連續挑戰 %d 天") % streak if streak > 0 else "")
 	subtitle.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 	subtitle.add_theme_font_size_override("font_size", 24)
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(subtitle)
 
 
@@ -109,6 +115,8 @@ func _build_daily_card(col: VBoxContainer) -> void:
 		_difficulty_label(String(ch["game"]), int(ch["difficulty"])),
 	]
 	desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.custom_minimum_size = Vector2(1, 0)
 	inner.add_child(desc)
 
 	if Daily.is_completed_today():
@@ -179,10 +187,13 @@ func _build_continue_card(col: VBoxContainer) -> void:
 			]
 		desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 		desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc.custom_minimum_size = Vector2(1, 0)
 		row.add_child(desc)
 
 		var btn := Button.new()
 		btn.text = "繼續"
+		btn.clip_text = true
 		btn.pressed.connect(_resume_game.bind(game))
 		row.add_child(btn)
 
@@ -260,15 +271,21 @@ func _game_card(grid: GridContainer, game_name: String, desc_text: String, on_st
 	var head := Label.new()
 	head.text = game_name
 	head.add_theme_font_size_override("font_size", 32)
+	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	inner.add_child(head)
 
+	# 說明文字一定要能換行：英文翻譯通常比中文長很多，若不換行會撐大
+	# GridContainer 的欄寬，導致整排卡片一起被推出螢幕外（0.8.1 實測發生過）。
 	var desc := Label.new()
 	desc.text = desc_text
 	desc.add_theme_font_size_override("font_size", 22)
 	desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.custom_minimum_size = Vector2(1, 0)
 	inner.add_child(desc)
 
 	var btn := Button.new()
+	btn.clip_text = true
 	if on_start.is_valid():
 		btn.text = "開始"
 		btn.pressed.connect(on_start)
@@ -430,6 +447,8 @@ func _stats_card(col: VBoxContainer, title: String, text: String) -> void:
 	var body := Label.new()
 	body.text = text
 	body.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.custom_minimum_size = Vector2(1, 0)
 	inner.add_child(body)
 
 
