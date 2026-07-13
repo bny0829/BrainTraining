@@ -429,7 +429,7 @@ func _win() -> void:
 	SaveManager.save()
 	SaveManager.set_in_progress("solitaire", {})
 	_refresh()
-	OverlayDialog.open(self, "恭喜完成！", "時間：%s・共 %d 步" % [
+	OverlayDialog.open(self, "恭喜完成！", tr("時間：%s・共 %d 步") % [
 		SudokuScreen.format_time(int(seconds)), moves
 	], [
 		{"text": "再來一局", "action": _new_game},
@@ -457,7 +457,7 @@ func _go_home() -> void:
 # ---- 顯示與存檔 ----
 
 func _refresh() -> void:
-	_moves_label.text = "步數 %d" % moves
+	_moves_label.text = tr("步數 %d") % moves
 	_last_timer_text = SudokuScreen.format_time(int(seconds))
 	_timer_label.text = _last_timer_text
 	_undo_btn.disabled = finished or undo_stack.is_empty()

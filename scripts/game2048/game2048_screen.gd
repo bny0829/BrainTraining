@@ -193,7 +193,8 @@ func _move(dir: int) -> void:
 		reached_2048 = true
 		_save_state()
 		Sfx.play("win")
-		OverlayDialog.open(self, "達成 2048！", "分數：%d\n可以繼續挑戰更大的數字" % score, [
+		OverlayDialog.open(self, "達成 2048！",
+				tr("分數：%d") % score + "\n" + tr("可以繼續挑戰更大的數字"), [
 			{"text": "繼續挑戰"},
 			{"text": "回首頁", "action": _go_home, "secondary": true},
 		])
@@ -212,7 +213,7 @@ func _game_over() -> void:
 	SaveManager.save()
 	SaveManager.set_in_progress("game2048", {})
 	Achievements.refresh()
-	OverlayDialog.open(self, "無法再移動", "分數：%d・最大磚塊：%d" % [
+	OverlayDialog.open(self, "無法再移動", tr("分數：%d・最大磚塊：%d") % [
 		score, Game2048Logic.max_tile(board.grid)
 	], [
 		{"text": "再來一局", "action": _new_game},
@@ -268,8 +269,8 @@ func _go_home() -> void:
 # ---- 顯示與存檔 ----
 
 func _refresh() -> void:
-	_score_label.text = "分數 %d" % score
-	_best_label.text = "最佳 %d" % int(SaveManager.section("game2048_stats").get("best_score", 0))
+	_score_label.text = tr("分數 %d") % score
+	_best_label.text = tr("最佳 %d") % int(SaveManager.section("game2048_stats").get("best_score", 0))
 	_undo_btn.disabled = finished or _undo_snapshot.is_empty()
 
 

@@ -73,7 +73,7 @@ func _show_toast(def: Dictionary) -> void:
 	head.add_theme_color_override("font_color", AppTheme.ACCENT)
 	col.add_child(head)
 	var name_label := Label.new()
-	name_label.text = "%s — %s" % [String(def["name"]), String(def["desc"])]
+	name_label.text = "%s — %s" % [tr(String(def["name"])), tr(String(def["desc"]))]
 	name_label.add_theme_font_size_override("font_size", 26)
 	col.add_child(name_label)
 

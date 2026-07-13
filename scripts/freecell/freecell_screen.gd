@@ -397,11 +397,11 @@ func _win() -> void:
 	SaveManager.save()
 	SaveManager.set_in_progress("freecell", {})
 	_refresh()
-	var msg := "時間：%s・共 %d 步" % [SudokuScreen.format_time(int(seconds)), moves]
+	var msg := tr("時間：%s・共 %d 步") % [SudokuScreen.format_time(int(seconds)), moves]
 	var buttons: Array = []
 	if mode == "daily":
 		Daily.mark_completed()
-		msg += "\n每日挑戰完成！連續 %d 天" % Daily.streak()
+		msg += "\n" + tr("每日挑戰完成！連續 %d 天") % Daily.streak()
 	else:
 		buttons.append({"text": "再來一局", "action": _new_game})
 	buttons.append({"text": "回首頁", "action": _go_home, "secondary": not buttons.is_empty()})
@@ -428,7 +428,7 @@ func _go_home() -> void:
 # ---- 顯示與存檔 ----
 
 func _refresh() -> void:
-	_moves_label.text = "步數 %d" % moves
+	_moves_label.text = tr("步數 %d") % moves
 	_last_timer_text = SudokuScreen.format_time(int(seconds))
 	_timer_label.text = _last_timer_text
 	_undo_btn.disabled = finished or undo_stack.is_empty()

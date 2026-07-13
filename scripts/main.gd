@@ -13,7 +13,17 @@ func _enter_tree() -> void:
 	instance = self
 
 
+## 套用玩家選擇的語言（空字串 = 跟隨裝置系統語言）
+static func apply_locale() -> void:
+	var lang := String(SaveManager.section("settings").get("language", ""))
+	if lang != "":
+		TranslationServer.set_locale(lang)
+	else:
+		TranslationServer.set_locale(OS.get_locale())
+
+
 func _ready() -> void:
+	apply_locale()
 	theme = AppTheme.build()
 	var bg := ColorRect.new()
 	bg.color = AppTheme.BG

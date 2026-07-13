@@ -203,9 +203,9 @@ func _after_move() -> void:
 		_proceed()
 	else:
 		# next 無子可下：跳過，輪回原玩家
-		var skipped := "你" if next == ReversiLogic.BLACK else "AI"
-		var cont := "AI" if next == ReversiLogic.BLACK else "你"
-		OverlayDialog.open(self, "跳過回合", "%s無子可下，由%s繼續" % [skipped, cont], [
+		var skipped := tr("你") if next == ReversiLogic.BLACK else "AI"
+		var cont := "AI" if next == ReversiLogic.BLACK else tr("你")
+		OverlayDialog.open(self, "跳過回合", tr("%s無子可下，由%s繼續") % [skipped, cont], [
 			{"text": "確定", "action": _proceed},
 		])
 
@@ -275,11 +275,11 @@ func _finish() -> void:
 		title = "AI 獲勝"
 	else:
 		title = "平手"
-	var msg := "黑 %d：%d 白・難度 %s" % [c[0], c[1], ReversiLogic.DIFFICULTY_TEXT[difficulty]]
+	var msg := tr("黑 %d：%d 白・難度 %s") % [c[0], c[1], tr(ReversiLogic.DIFFICULTY_TEXT[difficulty])]
 	var buttons: Array = []
 	if mode == "daily" and player_won:
 		Daily.mark_completed()
-		msg += "\n每日挑戰完成！連續 %d 天" % Daily.streak()
+		msg += "\n" + tr("每日挑戰完成！連續 %d 天") % Daily.streak()
 	else:
 		buttons.append({"text": "再來一局", "action": _new_game})
 	buttons.append({"text": "回首頁", "action": _go_home, "secondary": not buttons.is_empty()})
@@ -293,16 +293,16 @@ func _go_home() -> void:
 # ---- 顯示與存檔 ----
 
 func _refresh() -> void:
-	var mode_text := "每日挑戰・黑白棋" if mode == "daily" else "黑白棋"
-	_title_label.text = "%s・%s" % [mode_text, ReversiLogic.DIFFICULTY_TEXT[difficulty]]
+	var mode_text := tr("每日挑戰・黑白棋") if mode == "daily" else tr("黑白棋")
+	_title_label.text = "%s・%s" % [mode_text, tr(ReversiLogic.DIFFICULTY_TEXT[difficulty])]
 	var c := ReversiLogic.count(board.stones)
-	_score_label.text = "黑 %d：%d 白" % [c[0], c[1]]
+	_score_label.text = tr("黑 %d：%d 白") % [c[0], c[1]]
 	if finished:
-		_info_label.text = "對局結束"
+		_info_label.text = tr("對局結束")
 	elif _ai_pending:
-		_info_label.text = "AI 思考中…"
+		_info_label.text = tr("AI 思考中…")
 	else:
-		_info_label.text = "你的回合（黑棋）"
+		_info_label.text = tr("你的回合（黑棋）")
 	# 玩家回合才顯示合法手提示
 	if not finished and not _ai_pending and turn == ReversiLogic.BLACK:
 		board.hints = ReversiLogic.legal_moves(board.stones, ReversiLogic.BLACK)

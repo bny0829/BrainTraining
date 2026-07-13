@@ -55,13 +55,13 @@ const NO_DIFFICULTY := ["game2048", "solitaire", "freecell"]
 func _difficulty_label(game: String, d: int) -> String:
 	match game:
 		"sudoku":
-			return "%s %s" % [SudokuLogic.DIFFICULTY_TEXT[d], SudokuLogic.DIFFICULTY_STARS[d]]
+			return "%s %s" % [tr(SudokuLogic.DIFFICULTY_TEXT[d]), SudokuLogic.DIFFICULTY_STARS[d]]
 		"gomoku":
-			return "%s %s" % [GomokuLogic.DIFFICULTY_TEXT[d], GomokuLogic.DIFFICULTY_STARS[d]]
+			return "%s %s" % [tr(GomokuLogic.DIFFICULTY_TEXT[d]), GomokuLogic.DIFFICULTY_STARS[d]]
 		"minesweeper":
-			return "%s %s" % [MinesweeperLogic.DIFFICULTY_TEXT[d], MinesweeperLogic.DIFFICULTY_STARS[d]]
+			return "%s %s" % [tr(MinesweeperLogic.DIFFICULTY_TEXT[d]), MinesweeperLogic.DIFFICULTY_STARS[d]]
 		_:
-			return "%s %s" % [ReversiLogic.DIFFICULTY_TEXT[d], ReversiLogic.DIFFICULTY_STARS[d]]
+			return "%s %s" % [tr(ReversiLogic.DIFFICULTY_TEXT[d]), ReversiLogic.DIFFICULTY_STARS[d]]
 
 
 func _build_header(col: VBoxContainer) -> void:
@@ -76,7 +76,7 @@ func _build_header(col: VBoxContainer) -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
 	var ach := Button.new()
-	ach.text = "成就 %d/%d" % [Achievements.unlocked_count(), Achievements.total_count()]
+	ach.text = tr("成就 %d/%d") % [Achievements.unlocked_count(), Achievements.total_count()]
 	AppTheme.style_secondary(ach)
 	ach.pressed.connect(func() -> void: Main.instance.open_achievements())
 	row.add_child(ach)
@@ -88,7 +88,7 @@ func _build_header(col: VBoxContainer) -> void:
 
 	var subtitle := Label.new()
 	var streak := Daily.streak()
-	subtitle.text = Daily.today_id() + ("　連續挑戰 %d 天" % streak if streak > 0 else "")
+	subtitle.text = Daily.today_id() + ("　" + tr("連續挑戰 %d 天") % streak if streak > 0 else "")
 	subtitle.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
 	subtitle.add_theme_font_size_override("font_size", 24)
 	col.add_child(subtitle)
@@ -105,7 +105,7 @@ func _build_daily_card(col: VBoxContainer) -> void:
 	var desc := Label.new()
 	desc.text = "%s　%s・%s" % [
 		Daily.today_id(),
-		GAME_NAMES[String(ch["game"])],
+		tr(GAME_NAMES[String(ch["game"])]),
 		_difficulty_label(String(ch["game"]), int(ch["difficulty"])),
 	]
 	desc.add_theme_color_override("font_color", AppTheme.TEXT_MUTED)
@@ -164,9 +164,9 @@ func _build_continue_card(col: VBoxContainer) -> void:
 		row.add_theme_constant_override("separation", 12)
 		inner.add_child(row)
 
-		var mode_text: String = GAME_NAMES[game]
+		var mode_text: String = tr(GAME_NAMES[game])
 		if String(st.get("mode", "")) == "daily":
-			mode_text = "每日挑戰・" + mode_text
+			mode_text = tr("每日挑戰") + "・" + mode_text
 		var detail := _progress_detail(game, st)
 		var desc := Label.new()
 		if NO_DIFFICULTY.has(game):
@@ -192,14 +192,14 @@ func _progress_detail(game: String, st: Dictionary) -> String:
 		"sudoku", "minesweeper":
 			return SudokuScreen.format_time(int(st.get("seconds", 0)))
 		"gomoku":
-			return "第 %d 手" % ((st.get("moves", []) as Array).size() + 1)
+			return tr("第 %d 手") % ((st.get("moves", []) as Array).size() + 1)
 		"game2048":
-			return "分數 %d" % int(st.get("score", 0))
+			return tr("分數 %d") % int(st.get("score", 0))
 		"solitaire", "freecell":
-			return "%d 步" % int(st.get("moves", 0))
+			return tr("%d 步") % int(st.get("moves", 0))
 		_:
 			var c := ReversiLogic.count(ReversiScreen._to_int_array(st.get("board", [])))
-			return "黑 %d：%d 白" % [c[0], c[1]]
+			return tr("黑 %d：%d 白") % [c[0], c[1]]
 
 
 func _resume_game(game: String) -> void:
@@ -282,7 +282,7 @@ func _pick_sudoku_difficulty() -> void:
 	var buttons: Array = []
 	for d in SudokuLogic.Difficulty.values():
 		buttons.append({
-			"text": "%s %s" % [SudokuLogic.DIFFICULTY_TEXT[d], SudokuLogic.DIFFICULTY_STARS[d]],
+			"text": "%s %s" % [tr(SudokuLogic.DIFFICULTY_TEXT[d]), SudokuLogic.DIFFICULTY_STARS[d]],
 			"action": _start_sudoku.bind(d),
 		})
 	buttons.append({"text": "取消", "secondary": true})
@@ -297,7 +297,7 @@ func _pick_gomoku_difficulty() -> void:
 	var buttons: Array = []
 	for d in GomokuLogic.Difficulty.values():
 		buttons.append({
-			"text": "%s %s" % [GomokuLogic.DIFFICULTY_TEXT[d], GomokuLogic.DIFFICULTY_STARS[d]],
+			"text": "%s %s" % [tr(GomokuLogic.DIFFICULTY_TEXT[d]), GomokuLogic.DIFFICULTY_STARS[d]],
 			"action": _start_gomoku.bind(d),
 		})
 	buttons.append({"text": "取消", "secondary": true})
@@ -312,7 +312,7 @@ func _pick_reversi_difficulty() -> void:
 	var buttons: Array = []
 	for d in ReversiLogic.Difficulty.values():
 		buttons.append({
-			"text": "%s %s" % [ReversiLogic.DIFFICULTY_TEXT[d], ReversiLogic.DIFFICULTY_STARS[d]],
+			"text": "%s %s" % [tr(ReversiLogic.DIFFICULTY_TEXT[d]), ReversiLogic.DIFFICULTY_STARS[d]],
 			"action": _start_reversi.bind(d),
 		})
 	buttons.append({"text": "取消", "secondary": true})
@@ -328,8 +328,8 @@ func _pick_minesweeper_difficulty() -> void:
 	for d in MinesweeperLogic.Difficulty.values():
 		var cfg: Dictionary = MinesweeperLogic.CONFIG[d]
 		buttons.append({
-			"text": "%s %s（%d×%d・%d 雷）" % [
-				MinesweeperLogic.DIFFICULTY_TEXT[d], MinesweeperLogic.DIFFICULTY_STARS[d],
+			"text": tr("%s %s（%d×%d・%d 雷）") % [
+				tr(MinesweeperLogic.DIFFICULTY_TEXT[d]), MinesweeperLogic.DIFFICULTY_STARS[d],
 				int(cfg["w"]), int(cfg["h"]), int(cfg["mines"]),
 			],
 			"action": _start_minesweeper.bind(d),
@@ -358,66 +358,66 @@ func _build_stats(col: VBoxContainer) -> void:
 	var s := SaveManager.sudoku_stats()
 	var played := int(s.get("played", 0))
 	if played > 0:
-		var text := "完成 %d / %d 局" % [int(s.get("won", 0)), played]
+		var text := tr("完成 %d / %d 局") % [int(s.get("won", 0)), played]
 		for d in SudokuLogic.Difficulty.values():
 			var best := int(s.get("best_%d" % d, 0))
 			if best > 0:
-				text += "\n%s 最佳：%s" % [SudokuLogic.DIFFICULTY_TEXT[d], SudokuScreen.format_time(best)]
+				text += "\n" + tr("%s 最佳：%s") % [tr(SudokuLogic.DIFFICULTY_TEXT[d]), SudokuScreen.format_time(best)]
 		_stats_card(col, "數獨戰績", text)
 
 	var g := SaveManager.stats("gomoku")
 	var g_played := int(g.get("played", 0))
 	if g_played > 0:
-		var text := "勝 %d / %d 局" % [int(g.get("won", 0)), g_played]
+		var text := tr("勝 %d / %d 局") % [int(g.get("won", 0)), g_played]
 		for d in GomokuLogic.Difficulty.values():
 			var wins := int(g.get("won_%d" % d, 0))
 			if wins > 0:
-				text += "\n%s 勝場：%d" % [GomokuLogic.DIFFICULTY_TEXT[d], wins]
+				text += "\n" + tr("%s 勝場：%d") % [tr(GomokuLogic.DIFFICULTY_TEXT[d]), wins]
 		_stats_card(col, "五子棋戰績", text)
 
 	var r := SaveManager.stats("reversi")
 	var r_played := int(r.get("played", 0))
 	if r_played > 0:
-		var text := "勝 %d / %d 局" % [int(r.get("won", 0)), r_played]
+		var text := tr("勝 %d / %d 局") % [int(r.get("won", 0)), r_played]
 		for d in ReversiLogic.Difficulty.values():
 			var wins := int(r.get("won_%d" % d, 0))
 			if wins > 0:
-				text += "\n%s 勝場：%d" % [ReversiLogic.DIFFICULTY_TEXT[d], wins]
+				text += "\n" + tr("%s 勝場：%d") % [tr(ReversiLogic.DIFFICULTY_TEXT[d]), wins]
 		_stats_card(col, "黑白棋戰績", text)
 
 	var t := SaveManager.stats("game2048")
 	if int(t.get("best_score", 0)) > 0:
-		var text := "最高分：%d・最大磚塊：%d" % [int(t.get("best_score", 0)), int(t.get("best_tile", 0))]
+		var text := tr("最高分：%d・最大磚塊：%d") % [int(t.get("best_score", 0)), int(t.get("best_tile", 0))]
 		if int(t.get("played", 0)) > 0:
-			text += "\n完整場數：%d" % int(t.get("played", 0))
+			text += "\n" + tr("完整場數：%d") % int(t.get("played", 0))
 		_stats_card(col, "2048 戰績", text)
 
 	var so := SaveManager.stats("solitaire")
 	var so_played := int(so.get("played", 0))
 	if so_played > 0:
-		var text := "完成 %d / %d 局" % [int(so.get("won", 0)), so_played]
+		var text := tr("完成 %d / %d 局") % [int(so.get("won", 0)), so_played]
 		var best := int(so.get("best_time", 0))
 		if best > 0:
-			text += "\n最佳時間：%s" % SudokuScreen.format_time(best)
+			text += "\n" + tr("最佳時間：%s") % SudokuScreen.format_time(best)
 		_stats_card(col, "接龍戰績", text)
 
 	var fc := SaveManager.stats("freecell")
 	var fc_played := int(fc.get("played", 0))
 	if fc_played > 0:
-		var text := "完成 %d / %d 局" % [int(fc.get("won", 0)), fc_played]
+		var text := tr("完成 %d / %d 局") % [int(fc.get("won", 0)), fc_played]
 		var best := int(fc.get("best_time", 0))
 		if best > 0:
-			text += "\n最佳時間：%s" % SudokuScreen.format_time(best)
+			text += "\n" + tr("最佳時間：%s") % SudokuScreen.format_time(best)
 		_stats_card(col, "新接龍戰績", text)
 
 	var ms := SaveManager.stats("minesweeper")
 	var ms_played := int(ms.get("played", 0))
 	if ms_played > 0:
-		var text := "掃雷成功 %d / %d 局" % [int(ms.get("won", 0)), ms_played]
+		var text := tr("掃雷成功 %d / %d 局") % [int(ms.get("won", 0)), ms_played]
 		for d in MinesweeperLogic.Difficulty.values():
 			var wins := int(ms.get("won_%d" % d, 0))
 			if wins > 0:
-				text += "\n%s 成功：%d" % [MinesweeperLogic.DIFFICULTY_TEXT[d], wins]
+				text += "\n" + tr("%s 成功：%d") % [tr(MinesweeperLogic.DIFFICULTY_TEXT[d]), wins]
 		_stats_card(col, "踩地雷戰績", text)
 
 
