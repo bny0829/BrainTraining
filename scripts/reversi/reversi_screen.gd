@@ -75,11 +75,13 @@ func _build_ui() -> void:
 	AppTheme.style_secondary(back)
 	back.pressed.connect(_on_back)
 	top.add_child(back)
-	top.add_child(_spacer())
 	_title_label = Label.new()
 	_title_label.add_theme_font_size_override("font_size", 34)
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_title_label.custom_minimum_size = Vector2(1, 0)
+	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(_title_label)
-	top.add_child(_spacer())
 	var ghost := Button.new()
 	ghost.text = "← 返回"
 	ghost.modulate = Color(1, 1, 1, 0)
@@ -122,6 +124,39 @@ func _build_ui() -> void:
 	restart.pressed.connect(_on_restart_pressed)
 	tools.add_child(restart)
 
+	var tools2 := HBoxContainer.new()
+	tools2.add_theme_constant_override("separation", 12)
+	col.add_child(tools2)
+	var hint_btn := Button.new()
+	hint_btn.text = "提示"
+	hint_btn.clip_text = true
+	hint_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(hint_btn)
+	hint_btn.pressed.connect(_on_hint)
+	tools2.add_child(hint_btn)
+	var how_btn := Button.new()
+	how_btn.text = "說明"
+	how_btn.clip_text = true
+	how_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(how_btn)
+	how_btn.pressed.connect(_show_how_to_play)
+	tools2.add_child(how_btn)
+
+
+func _on_hint() -> void:
+	if finished or _ai_pending or turn != ReversiLogic.BLACK:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	board.hint_index = ReversiLogic.choose_move(
+		board.stones.duplicate(), ReversiLogic.BLACK, ReversiLogic.Difficulty.EXPERT, rng
+	)
+	board.queue_redraw()
+
+
+func _show_how_to_play() -> void:
+	OverlayDialog.open(self, "怎麼玩", tr("你執黑棋先手。落子時必須至少夾住一條對方棋子（前後兩端是自己的棋子），夾住的棋子會翻成自己的顏色。無棋可下時自動跳過回合，棋盤下滿或雙方都無法下時子多的一方獲勝。點「提示」可看建議落點（空心圈）。"), [{"text": "確定"}])
+
 
 func _spacer() -> Control:
 	var s := Control.new()
@@ -136,6 +171,7 @@ func _new_game() -> void:
 	for i in ReversiLogic.CELLS:
 		board.stones[i] = init[i]
 	board.last_move = -1
+	board.hint_index = -1
 	turn = ReversiLogic.BLACK
 	finished = false
 	undo_stack.clear()
@@ -190,6 +226,7 @@ func _apply_move(i: int) -> void:
 
 ## 每步共用的收尾：判終局、換手或跳過
 func _after_move() -> void:
+	board.hint_index = -1  # 落子後舊提示已經過期，避免誤導
 	board.queue_redraw()
 	var black_can := ReversiLogic.has_move(board.stones, ReversiLogic.BLACK)
 	var white_can := ReversiLogic.has_move(board.stones, ReversiLogic.WHITE)
@@ -294,7 +331,8 @@ func _go_home() -> void:
 
 func _refresh() -> void:
 	var mode_text := tr("每日挑戰·黑白棋") if mode == "daily" else tr("黑白棋")
-	_title_label.text = "%s·%s" % [mode_text, tr(ReversiLogic.DIFFICULTY_TEXT[difficulty])]
+	_title_label.text = "%s · %s" % [mode_text, tr(ReversiLogic.DIFFICULTY_TEXT[difficulty])]
+	_title_label.add_theme_font_size_override("font_size", 34 if _title_label.text.length() <= 16 else 24)
 	var c := ReversiLogic.count(board.stones)
 	_score_label.text = tr("黑 %d：%d 白") % [c[0], c[1]]
 	if finished:

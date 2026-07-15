@@ -132,6 +132,17 @@ func _build_ui() -> void:
 	AppTheme.style_secondary(restart)
 	restart.pressed.connect(_on_restart_pressed)
 	tools.add_child(restart)
+	var how_btn := Button.new()
+	how_btn.text = "說明"
+	how_btn.clip_text = true
+	how_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(how_btn)
+	how_btn.pressed.connect(_show_how_to_play)
+	tools.add_child(how_btn)
+
+
+func _show_how_to_play() -> void:
+	OverlayDialog.open(self, "怎麼玩", tr("上下左右滑動，所有磚塊會往滑動方向移動並合併相同數字（例如兩個 2 合併成 4）。合成 2048 磚塊即獲勝，也可以繼續挑戰更高分。無法移動時遊戲結束。"), [{"text": "確定"}])
 
 
 func _spacer() -> Control:

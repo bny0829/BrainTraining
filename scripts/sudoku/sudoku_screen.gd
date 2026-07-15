@@ -73,11 +73,13 @@ func _build_ui() -> void:
 	AppTheme.style_secondary(back)
 	back.pressed.connect(_on_back)
 	top.add_child(back)
-	top.add_child(_spacer())
 	_title_label = Label.new()
 	_title_label.add_theme_font_size_override("font_size", 34)
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_title_label.custom_minimum_size = Vector2(1, 0)
+	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(_title_label)
-	top.add_child(_spacer())
 	var hint := Button.new()
 	hint.text = "提示"
 	AppTheme.style_secondary(hint)
@@ -129,6 +131,13 @@ func _build_ui() -> void:
 	AppTheme.style_secondary(notes_btn)
 	notes_btn.toggled.connect(_on_notes_toggled)
 	tools.add_child(notes_btn)
+	var how_btn := Button.new()
+	how_btn.text = "說明"
+	how_btn.clip_text = true
+	how_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(how_btn)
+	how_btn.pressed.connect(_show_how_to_play)
+	tools.add_child(how_btn)
 
 	# 數字鍵
 	var pad := HBoxContainer.new()
@@ -149,6 +158,10 @@ func _spacer() -> Control:
 	var s := Control.new()
 	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return s
+
+
+func _show_how_to_play() -> void:
+	OverlayDialog.open(self, "怎麼玩", tr("在每個 3×3 宮、每列、每行填入 1~9 且不重複。點格子選取，點數字鍵輸入。筆記可記錄候選數字，提示會直接填入正確答案。錯誤 3 次即挑戰失敗。"), [{"text": "確定"}])
 
 
 # ---- 遊戲流程 ----
@@ -399,7 +412,8 @@ func _go_home() -> void:
 
 func _refresh_all() -> void:
 	var mode_text := tr("每日挑戰") if mode == "daily" else tr("數獨")
-	_title_label.text = "%s·%s" % [mode_text, tr(SudokuLogic.DIFFICULTY_TEXT[difficulty])]
+	_title_label.text = "%s · %s" % [mode_text, tr(SudokuLogic.DIFFICULTY_TEXT[difficulty])]
+	_title_label.add_theme_font_size_override("font_size", 34 if _title_label.text.length() <= 16 else 24)
 	_update_info()
 	_update_numberpad()
 	_last_timer_text = format_time(int(seconds))

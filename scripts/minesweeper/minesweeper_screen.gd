@@ -65,11 +65,13 @@ func _build_ui() -> void:
 	AppTheme.style_secondary(back)
 	back.pressed.connect(_on_back)
 	top.add_child(back)
-	top.add_child(_spacer())
 	_title_label = Label.new()
 	_title_label.add_theme_font_size_override("font_size", 34)
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_title_label.custom_minimum_size = Vector2(1, 0)
+	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(_title_label)
-	top.add_child(_spacer())
 	var ghost := Button.new()
 	ghost.text = "← 返回"
 	ghost.modulate = Color(1, 1, 1, 0)
@@ -119,6 +121,17 @@ func _build_ui() -> void:
 	AppTheme.style_secondary(restart)
 	restart.pressed.connect(_on_restart_pressed)
 	tools.add_child(restart)
+	var how_btn := Button.new()
+	how_btn.text = "說明"
+	how_btn.clip_text = true
+	how_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(how_btn)
+	how_btn.pressed.connect(_show_how_to_play)
+	tools.add_child(how_btn)
+
+
+func _show_how_to_play() -> void:
+	OverlayDialog.open(self, "怎麼玩", tr("點擊格子挖開，數字代表周圍 8 格內的地雷數。長按格子插旗標記地雷。挖到地雷即失敗，挖開所有非地雷格即獲勝。第一次挖的格子保證安全。"), [{"text": "確定"}])
 
 
 func _spacer() -> Control:
@@ -299,7 +312,8 @@ func _go_home() -> void:
 
 func _refresh() -> void:
 	var mode_text := tr("每日挑戰·踩地雷") if mode == "daily" else tr("踩地雷")
-	_title_label.text = "%s·%s" % [mode_text, tr(MinesweeperLogic.DIFFICULTY_TEXT[difficulty])]
+	_title_label.text = "%s · %s" % [mode_text, tr(MinesweeperLogic.DIFFICULTY_TEXT[difficulty])]
+	_title_label.add_theme_font_size_override("font_size", 34 if _title_label.text.length() <= 16 else 24)
 	_mines_label.text = tr("地雷 %d") % maxi(0, mine_count - MinesweeperLogic.flag_count(board.flagged))
 	_last_timer_text = SudokuScreen.format_time(int(seconds))
 	_timer_label.text = _last_timer_text

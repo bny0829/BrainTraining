@@ -8,6 +8,7 @@ signal cell_pressed(index: int)
 var stones: Array[int] = []      # 64，0 = 空、1 = 黑、2 = 白
 var hints: Array[int] = []       # 目前玩家的合法手（顯示提示點）
 var last_move := -1
+var hint_index := -1  # 「提示」按鈕建議的最佳落點（空心圈，跟合法手小點區分）
 
 
 func _init() -> void:
@@ -73,6 +74,10 @@ func _draw() -> void:
 			draw_arc(c, radius, 0.0, TAU, 40, AppTheme.STONE_WHITE_EDGE, 1.5, true)
 		elif hints.has(i):
 			draw_circle(c, s * 0.12, AppTheme.REVERSI_HINT)
+
+	# 提示按鈕建議的最佳落點：空心圈
+	if hint_index >= 0 and stones[hint_index] == ReversiLogic.EMPTY:
+		draw_arc(_center_of(hint_index), s * 0.32, 0.0, TAU, 32, AppTheme.ACCENT, 4.0, true)
 
 	# 最後一手標記
 	if last_move >= 0 and stones[last_move] != ReversiLogic.EMPTY:

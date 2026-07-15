@@ -83,11 +83,11 @@ AI 獲勝,AI Wins
 你的回合（黑棋）·第 %d 手,Your turn (Black)·Move %d
 AI 思考中…,AI is thinking...
 對局結束·共 %d 手,Game over·%d moves
-每日挑戰·數獨,Daily·Sudoku
-每日挑戰·五子棋,Daily·Gomoku
-每日挑戰·黑白棋,Daily·Reversi
-每日挑戰·踩地雷,Daily·Minesweeper
-每日挑戰·新接龍,Daily·FreeCell
+每日挑戰·數獨,Daily · Sudoku
+每日挑戰·五子棋,Daily · Gomoku
+每日挑戰·黑白棋,Daily · Reversi
+每日挑戰·踩地雷,Daily · Minesweeper
+每日挑戰·新接龍,Daily · FreeCell
 跳過回合,Turn Skipped
 你,You
 %s無子可下，由%s繼續,"%s has no valid move, %s continues"
@@ -123,6 +123,23 @@ AI 思考中…,AI is thinking...
 時間：%s·共 %d 步,Time %s·%d moves
 點牌選取 → 點目的地移動·左上為暫存格,Tap a card → tap destination·free cells at top-left
 收基礎堆,To Foundations
+無法搬移,Can't Move
+這段有 %d 張牌，目前最多只能搬 %d 張,"This group has %d cards, but you can only move %d right now"
+空暫存格與空列愈多，能搬的張數愈多,More empty free cells and columns increase this limit
+一次翻一張,Draw 1
+一次翻三張,Draw 3
+切換為%s後將重新開始這一局,Switching to %s will restart this deal
+說明,How to Play
+怎麼玩,How to Play
+在每個 3×3 宮、每列、每行填入 1~9 且不重複。點格子選取，點數字鍵輸入。筆記可記錄候選數字，提示會直接填入正確答案。錯誤 3 次即挑戰失敗。,"Fill each 3×3 box, row, and column with 1-9 with no repeats. Tap a cell to select it, then tap a number key. Notes let you pencil in candidates; Hint fills in the correct answer directly. 3 mistakes end the challenge."
+輪流下黑白棋子，任一方向（橫、直、斜）先連成 5 子即獲勝。你執黑棋先手，AI 執白棋。點「提示」可看建議落點（空心圈）。,"Take turns placing stones; the first to connect 5 in a row (any direction) wins. You play black and move first, the AI plays white. Tap Hint to see a suggested move (hollow circle)."
+你執黑棋先手。落子時必須至少夾住一條對方棋子（前後兩端是自己的棋子），夾住的棋子會翻成自己的顏色。無棋可下時自動跳過回合，棋盤下滿或雙方都無法下時子多的一方獲勝。點「提示」可看建議落點（空心圈）。,"You play black and move first. Each move must flank at least one line of opponent pieces (your color at both ends); flanked pieces flip to your color. Turns are skipped automatically when you have no legal move. Most pieces when the board is full or neither side can move wins. Tap Hint to see a suggested move (hollow circle)."
+點擊格子挖開，數字代表周圍 8 格內的地雷數。長按格子插旗標記地雷。挖到地雷即失敗，挖開所有非地雷格即獲勝。第一次挖的格子保證安全。,"Tap a cell to reveal it; numbers show how many mines are in the 8 surrounding cells. Long-press to flag a suspected mine. Hitting a mine ends the game; revealing every non-mine cell wins. The first cell you dig is always safe."
+上下左右滑動，所有磚塊會往滑動方向移動並合併相同數字（例如兩個 2 合併成 4）。合成 2048 磚塊即獲勝，也可以繼續挑戰更高分。無法移動時遊戲結束。,"Swipe up, down, left, or right; all tiles slide that way and matching numbers merge (e.g. two 2s become a 4). Making a 2048 tile wins, but you can keep going for a higher score. The game ends when no move is possible."
+把全部 52 張牌依花色從 A 到 K 收上右上角 4 個基礎堆即獲勝。牌桌上的牌可依「點數遞減、紅黑交替」的規則互相疊放，空列只能放 K。點牌選取、再點目的地移動，連點兩下自動移動。左上角可翻開庫存牌。,"Move all 52 cards, A to K by suit, onto the 4 foundations at top right to win. On the tableau, cards stack in descending rank with alternating colors; only a King can go on an empty column. Tap a card to select it, then tap a destination - double-tap to auto-move. Tap the stock at top left to draw."
+規則與接龍相同，但全部 52 張牌一開始就攤開。左上角 4 個暫存格可以暫時放置任意一張牌，是重要的策略資源（橘色格子）。整段連續的牌可以一次搬移，數量取決於目前空的暫存格與空列數量。,"Same rules as Solitaire, but all 52 cards start face-up. The 4 free cells at top left (orange) can hold any single card temporarily - a key strategic resource. A whole sequence of cards can be moved at once; how many depends on how many free cells and empty columns you have."
+目前沒有牌可以移動，試著翻開庫存牌看看,No moves available right now - try drawing from the stock
+目前沒有更多可行的移動了,No more moves are available right now
 音效,Sound
 開啟,On
 關閉,Off

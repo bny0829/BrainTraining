@@ -21,6 +21,9 @@ var waste: Array[int] = []
 var foundations: Array = [[], [], [], []]
 var columns: Array = [[], [], [], [], [], [], []]
 var face_up: Array[int] = [1, 1, 1, 1, 1, 1, 1]
+## 一次翻牌張數（僅供繪製參考：1 張時只畫最上面一張，3 張時畫出扇形堆疊，
+## 提醒玩家後面還壓著牌，但規則上永遠只有 waste[-1] 可操作）
+var draw_count := 1
 
 # 選取狀態（兩段式移動：先選牌、再點目的地）
 var selected_zone := ""   # "" = 無選取；"waste" 或 "column"
@@ -120,14 +123,20 @@ func _draw() -> void:
 		_draw_slot(stock_rect)
 	else:
 		_draw_card_back(stock_rect)
-	# 廢牌（只畫最上面一張）
+	# 廢牌：一次翻一張時只畫最上面一張；一次翻三張時畫出扇形堆疊
+	# （只有最右側、最後翻出的那張實際可操作，其餘只是視覺提示還有牌壓著）
 	var waste_rect := _slot_rect(1, 0)
 	if waste.is_empty():
 		_draw_slot(waste_rect)
 	else:
-		_draw_card_face(waste_rect, waste[-1])
+		var fan_n := mini(draw_count, waste.size())
+		var fan_offset := waste_rect.size.x * 0.32
+		for k in fan_n:
+			var idx := waste.size() - fan_n + k
+			var rect := Rect2(waste_rect.position + Vector2(k * fan_offset, 0), waste_rect.size)
+			_draw_card_face(rect, int(waste[idx]))
 		if selected_zone == "waste":
-			_draw_selection(waste_rect)
+			_draw_selection(Rect2(waste_rect.position + Vector2((fan_n - 1) * fan_offset, 0), waste_rect.size))
 	# 基礎堆
 	for f in 4:
 		var rect := _slot_rect(3 + f, 0)

@@ -17,6 +17,18 @@ static func slot(ci: Control, rect: Rect2) -> void:
 	ci.draw_rect(rect, SLOT_OUTLINE, false, 2.0)
 
 
+## 暫存格（FreeCell）專用空格樣式：用醒目的主題色標示，
+## 提醒玩家這是可以暫時停放任意一張牌的地方（新手常常沒發現而誤以為卡死）
+static func free_cell_slot(ci: Control, rect: Rect2) -> void:
+	ci.draw_rect(rect, AppTheme.ACCENT.lightened(0.7))
+	ci.draw_rect(rect, AppTheme.ACCENT, false, 3.0)
+	var s := minf(rect.size.x, rect.size.y) * 0.16
+	var c := rect.get_center()
+	# 加號圖示：暗示「可暫放一張牌」
+	ci.draw_rect(Rect2(c.x - s * 0.5, c.y - s * 0.12, s, s * 0.24), AppTheme.ACCENT)
+	ci.draw_rect(Rect2(c.x - s * 0.12, c.y - s * 0.5, s * 0.24, s), AppTheme.ACCENT)
+
+
 static func card_back(ci: Control, rect: Rect2) -> void:
 	ci.draw_rect(rect, CARD_BACK)
 	ci.draw_rect(rect.grow(-4.0), CARD_BACK_INNER)
