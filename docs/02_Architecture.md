@@ -104,6 +104,19 @@ Negamax + Alpha-Beta（難度 = 深度 0～3 + 候選寬度 + 隨機性）
 - **注意**：autoload 內的程式不能被 `--script` 測試 preload（autoload 識別字在該模式下無法編譯）——可測試的邏輯一律放 `scripts/` 純類別。
 - **多語系陷阱（v0.8.1 修正）**：Godot 的 `internationalization/locale/fallback` 專案設定預設值是 `"en"`。若原文字串就是中文（沒有另外準備 zh_TW 翻譯表），玩家裝置語言只要不是英文，`tr()` 找不到對應語言的翻譯表時會直接套用這個回退語言的翻譯表，而不是顯示原文——導致中文裝置預設反而顯示英文。已在 `project.godot` 明確設定 `locale/fallback="zh_TW"` 修正。日後若新增其他語言的翻譯表，此設定要一併確認。
 - **字元選用陷阱**：組合字串中的分隔符號一律用 `·`（U+00B7 MIDDLE DOT），不要用「・」（U+30FB 日文假名中點）——後者在部分 Android 裝置的內建字型缺字，會顯示成方框亂碼。
+- **英文版面溢出陷阱（v0.9 修正）**：英文翻譯普遍比中文長，任何會顯示動態組合文字的 `Label` 都要加
+  `autowrap_mode = TextServer.AUTOWRAP_WORD_SMART` + `custom_minimum_size = Vector2(1, 0)`，
+  否則 Label 未換行的完整寬度會撐大父容器（尤其是 `GridContainer` 多欄或塞很多按鈕的 `HBoxContainer`），
+  導致整排卡片、標題列被推出螢幕外。過長的按鈕文字要加 `clip_text = true`。
+- **標題置中排版陷阱（v0.9 修正）**：「返回鈕 + spacer + 標題(expand_fill) + spacer + 佔位鈕」這種寫法，
+  若標題也設了 `SIZE_EXPAND_FILL`，會跟兩個 spacer 三方平分剩餘空間，標題只拿到約 1/3 寬度，
+  導致連很短的標題都被迫不必要地換行。正確作法：**拿掉兩側的 spacer**，只留
+  「返回鈕 + 標題(expand_fill, horizontal_alignment=CENTER) + 佔位鈕」，讓標題獨占中間全部空間，
+  靠自身文字置中對齊看起來一樣居中，但不會被 spacer 搶走空間。
+- **測試中的「已釋放節點」陷阱**：`Main._switch()` 呼叫 `queue_free()` 換頁後，舊畫面的變數參照會失效；
+  若測試流程做過 `goto_home()` 再開新畫面，後續程式碼必須用新取得的變數（如 `main.current_screen()`），
+  絕不能沿用舊變數——對已釋放的 Godot 物件呼叫方法不只是拋例外，**可能直接讓整個引擎行程 segfault**
+  （比一般 GDScript 執行期錯誤更嚴重，且不會印出腳本錯誤訊息，只會看到程序異常退出）。
 
 ## 六、測試
 

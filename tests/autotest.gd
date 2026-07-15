@@ -74,6 +74,18 @@ func _run() -> void:
 	# 存檔還原
 	var saved := SaveManager.get_in_progress("sudoku")
 	_check(not saved.is_empty(), "進行中存檔遺失")
+	# 怎麼玩彈窗
+	screen._show_how_to_play()
+	await tree.process_frame
+	await _shot("sudoku_howto.png")
+	var sk_dlg: Array[Button] = []
+	_collect_buttons(screen, sk_dlg)
+	var sk_has_ok := false
+	for b in sk_dlg:
+		if b.text == "確定":
+			sk_has_ok = true
+			b.pressed.emit()
+	_check(sk_has_ok, "數獨怎麼玩彈窗未建立")
 	print("[autotest] 數獨操作 OK")
 
 	main.goto_home()
@@ -130,6 +142,22 @@ func _run() -> void:
 			leftover += 1
 	_check(leftover == 0, "重新開始後棋盤仍有殘子")
 	_check(g2.board.last_move == -1, "重新開始未清除最後一手標記")
+	# 提示：輪到玩家時應標示一個合法的建議落點
+	g2._on_hint()
+	_check(g2.board.hint_index >= 0 and g2.board.stones[g2.board.hint_index] == GomokuLogic.EMPTY,
+			"五子棋提示未標示合法落點")
+	await _shot("gomoku_hint.png")
+	# 怎麼玩彈窗
+	g2._show_how_to_play()
+	await tree.process_frame
+	var g2_dlg: Array[Button] = []
+	_collect_buttons(g2, g2_dlg)
+	var g2_has_ok := false
+	for b in g2_dlg:
+		if b.text == "確定":
+			g2_has_ok = true
+			b.pressed.emit()
+	_check(g2_has_ok, "五子棋怎麼玩彈窗未建立")
 	print("[autotest] 五子棋 OK")
 
 	# ---- 黑白棋 ----
@@ -164,6 +192,22 @@ func _run() -> void:
 	var rv2 := main.current_screen() as ReversiScreen
 	_check(rv2 != null, "黑白棋續玩畫面未建立")
 	_check(rv2.board.stones == saved_board, "黑白棋續玩還原失敗")
+	# 提示：輪到玩家時應標示一個合法的建議落點
+	rv2._on_hint()
+	_check(rv2.board.hint_index >= 0 and rv2.board.stones[rv2.board.hint_index] == ReversiLogic.EMPTY,
+			"黑白棋提示未標示合法落點")
+	await _shot("reversi_hint.png")
+	# 怎麼玩彈窗
+	rv2._show_how_to_play()
+	await tree.process_frame
+	var rv2_dlg: Array[Button] = []
+	_collect_buttons(rv2, rv2_dlg)
+	var rv2_has_ok := false
+	for b in rv2_dlg:
+		if b.text == "確定":
+			rv2_has_ok = true
+			b.pressed.emit()
+	_check(rv2_has_ok, "黑白棋怎麼玩彈窗未建立")
 	print("[autotest] 黑白棋 OK")
 
 	# ---- 成就 ----
@@ -218,7 +262,33 @@ func _run() -> void:
 	_check(msw2 != null, "踩地雷續玩畫面未建立")
 	_check(msw2.board.revealed == saved_revealed, "踩地雷續玩還原失敗")
 	_check(msw2.board.flagged[covered], "旗標未還原")
+	# 怎麼玩彈窗
+	msw2._show_how_to_play()
+	await tree.process_frame
+	var msw_dlg: Array[Button] = []
+	_collect_buttons(msw2, msw_dlg)
+	var msw_has_ok := false
+	for b in msw_dlg:
+		if b.text == "確定":
+			msw_has_ok = true
+			b.pressed.emit()
+	_check(msw_has_ok, "踩地雷怎麼玩彈窗未建立")
 	print("[autotest] 踩地雷 OK")
+
+	# ---- 踩地雷每日挑戰（迴歸測試：標題「每日挑戰・踩地雷・難度」三段組合
+	# 曾在英文介面撐出螢幕，這裡固定用最長的專家難度重現）----
+	main.goto_home()
+	await tree.process_frame
+	main.open_minesweeper({
+		"mode": "daily", "difficulty": MinesweeperLogic.Difficulty.EXPERT, "seed": 1234,
+	})
+	await tree.process_frame
+	var msw3 := main.current_screen() as MinesweeperScreen
+	_check(msw3 != null, "踩地雷每日挑戰畫面未建立")
+	await _shot("minesweeper_daily.png")
+	main.goto_home()
+	await tree.process_frame
+	print("[autotest] 踩地雷每日挑戰 OK")
 
 	# ---- 2048 ----
 	main.open_game2048({"mode": "normal"})
@@ -258,6 +328,17 @@ func _run() -> void:
 	SaveManager.section("game2048_stats")["best_tile"] = 512
 	Achievements.refresh()
 	_check(Achievements.is_unlocked("t2048_512"), "2048 成就未解鎖")
+	# 怎麼玩彈窗（g48 在上面續玩流程中已被釋放，改用還活著的 g48b）
+	g48b._show_how_to_play()
+	await tree.process_frame
+	var g48_dlg: Array[Button] = []
+	_collect_buttons(g48b, g48_dlg)
+	var g48_has_ok := false
+	for b in g48_dlg:
+		if b.text == "確定":
+			g48_has_ok = true
+			b.pressed.emit()
+	_check(g48_has_ok, "2048 怎麼玩彈窗未建立")
 	print("[autotest] 2048 OK")
 
 	# ---- 接龍 ----
@@ -299,7 +380,29 @@ func _run() -> void:
 	for c in 7:
 		total += (sol.board.columns[c] as Array).size()
 	_check(total == 52, "牌數守恆（%d）" % total)
+	# 提示：找到動作就直接選取牌；找不到也要有禮貌地告知（翻庫存牌或卡關），不能什麼都不做
+	# 注意：牌局是隨機發的，這麼早期偶爾真的沒有牌桌內可搬動的牌，此時應該提示翻庫存牌
 	sol.board.clear_selected()
+	sol._on_hint()
+	var sol_hint_dlg: Array[Button] = []
+	_collect_buttons(sol, sol_hint_dlg)
+	_check(sol.board.selected_zone != "" or not sol_hint_dlg.is_empty(),
+			"接龍提示應該選取牌或顯示提示訊息")
+	for b in sol_hint_dlg:
+		if b.text == "確定":
+			b.pressed.emit()
+	sol.board.clear_selected()
+	# 怎麼玩彈窗
+	sol._show_how_to_play()
+	await tree.process_frame
+	var sol_dlg: Array[Button] = []
+	_collect_buttons(sol, sol_dlg)
+	var sol_has_ok := false
+	for b in sol_dlg:
+		if b.text == "確定":
+			sol_has_ok = true
+			b.pressed.emit()
+	_check(sol_has_ok, "接龍怎麼玩彈窗未建立")
 	await _shot("solitaire.png")
 	# 存檔續玩
 	var sol_stock := sol.board.stock.duplicate()
@@ -312,6 +415,51 @@ func _run() -> void:
 	_check(sol2 != null, "接龍續玩畫面未建立")
 	_check(sol2.board.stock == sol_stock and sol2.moves == sol_moves, "接龍續玩還原失敗")
 	print("[autotest] 接龍 OK")
+
+	# ---- 接龍：發三張模式 ----
+	# 注意：sol 在上面的續玩流程中已被釋放，改用還活著的 sol2；
+	# _apply_draw_count 只是重新發牌（不切換畫面）
+	sol = sol2
+	sol._apply_draw_count(3)
+	await tree.process_frame
+	_check(sol.draw_count == 3, "切換發三張模式未生效")
+	_check(int(SaveManager.section("settings").get("solitaire_draw_count", 1)) == 3,
+			"發三張設定未持久化")
+	var stock_before := sol.board.stock.size()
+	sol._tap_stock()
+	_check(sol.board.waste.size() == 3 and sol.board.stock.size() == stock_before - 3,
+			"發三張模式應一次翻 3 張")
+	_check(sol.board.draw_count == 3, "牌桌繪製用的 draw_count 未同步")
+	await _shot("solitaire_draw3.png")
+	# 只有最外側那張可操作：選取廢牌應對應到 waste[-1]
+	var top_card := sol.board.waste[-1]
+	sol._on_target("waste", 0, 0)
+	var waste_run := sol._selected_run()
+	_check(waste_run.size() == 1 and int(waste_run[0]) == int(top_card), "發三張模式下選取的應是最外側那張")
+	# 庫存只剩不足 3 張時，應只翻剩下的張數（不崩潰、不多翻）
+	while sol.board.stock.size() > 2:
+		sol.board.clear_selected()
+		sol._tap_stock()
+	sol.board.clear_selected()
+	var remain := sol.board.stock.size()
+	if remain > 0 and remain < 3:
+		sol._tap_stock()
+		_check(sol.board.stock.is_empty(), "庫存不足 3 張時應該翻完剩餘全部")
+	# 續玩應記得發三張模式
+	main.goto_home()
+	await tree.process_frame
+	main.open_solitaire({"mode": "resume"})
+	await tree.process_frame
+	var sol3 := main.current_screen() as SolitaireScreen
+	_check(sol3 != null and sol3.draw_count == 3, "接龍續玩未記得發三張模式")
+	# 切回發一張，確認模式能正常切換回去
+	sol3._apply_draw_count(1)
+	await tree.process_frame
+	sol3 = main.current_screen() as SolitaireScreen
+	_check(sol3.draw_count == 1, "切回發一張模式未生效")
+	main.goto_home()
+	await tree.process_frame
+	print("[autotest] 接龍發三張模式 OK")
 
 	# ---- 新接龍 ----
 	main.open_freecell({"mode": "normal", "seed": 77})
@@ -348,7 +496,110 @@ func _run() -> void:
 	await tree.process_frame
 	var fc2 := main.current_screen() as FreecellScreen
 	_check(fc2 != null and fc2.moves == fc_moves, "新接龍續玩還原失敗")
+	# 提示：全明牌開局一定至少有一個暫存格或牌桌動作可行
+	fc2.board.clear_selected()
+	fc2._on_hint()
+	_check(fc2.board.selected_zone != "", "新接龍提示應該找到可行動作")
+	fc2.board.clear_selected()
+	# 怎麼玩彈窗
+	fc2._show_how_to_play()
+	await tree.process_frame
+	var fc2_dlg: Array[Button] = []
+	_collect_buttons(fc2, fc2_dlg)
+	var fc2_has_ok := false
+	for b in fc2_dlg:
+		if b.text == "確定":
+			fc2_has_ok = true
+			b.pressed.emit()
+	_check(fc2_has_ok, "新接龍怎麼玩彈窗未建立")
 	print("[autotest] 新接龍 OK")
+
+	# ---- 新接龍迴歸測試：唯一合法目的地是空列時，快速自動移動也要能成功 ----
+	# （舊版 bug：_smart_move_selected 的搜尋迴圈明確跳過空列，導致這種情況下
+	# 連點兩下會直接失敗、玩家會誤以為卡死）
+	main.open_freecell({"mode": "normal"})
+	await tree.process_frame
+	fc = main.current_screen() as FreecellScreen
+	var layout: Array = []
+	for c in 8:
+		layout.append([] as Array[int])
+	layout[0] = [5, 17] as Array[int]  # 黑桃6、紅心5：合法兩張連續段
+	for c in range(2, 8):
+		layout[c] = [12] as Array[int]  # 其餘各列放黑桃K擋著，確保不會湊巧可疊
+	fc.board.cascades = layout
+	fc.board.free = [10, 11, 20, -1] as Array[int]  # 3 個暫存格佔用、1 個空
+	fc.board.foundations = [[], [], [], []]
+	fc.undo_stack.clear()
+	fc.board.clear_selected()
+	fc._on_target("cascade", 0, 0)
+	_check(fc.board.selected_zone == "cascade" and fc.board.selected_index == 0, "迴歸測試選取失敗")
+	fc._smart_move_selected()
+	_check((fc.board.cascades[1] as Array).size() == 2, "快速自動移動應把整段移入唯一的空列（迴歸修正）")
+	_check((fc.board.cascades[0] as Array).is_empty(), "來源列應清空")
+	print("[autotest] 新接龍空列迴歸測試 OK")
+
+	# ---- 新接龍迴歸測試：搬移上限公式與失敗提示（重現 Benny 回報的 7 張牌情境）----
+	main.open_freecell({"mode": "normal"})
+	await tree.process_frame
+	fc = main.current_screen() as FreecellScreen
+	# K,Q,J,10,9,8,7 黑紅交替的合法 7 張連續段
+	var run7: Array[int] = [12, 24, 10, 22, 8, 20, 6]
+	var layout2: Array = []
+	for c in 8:
+		layout2.append([] as Array[int])
+	layout2[0] = run7.duplicate()
+	for c in range(2, 8):
+		layout2[c] = [38] as Array[int]  # 梅花 Q，任意擋著避免湊巧可疊
+	fc.board.cascades = layout2
+	fc.board.foundations = [[], [], [], []]
+
+	# 情境一：只有 1 個空暫存格、0 個額外空列 → 上限 = (1+1)*1 = 2，7 張應失敗且顯示提示
+	fc.board.free = [1, 2, 3, -1] as Array[int]
+	fc.undo_stack.clear()
+	fc.board.clear_selected()
+	fc._on_target("cascade", 0, 0)
+	_check(fc.board.selected_index == 0, "7 張情境選取失敗")
+	fc._on_target("cascade", 1, -1)
+	var dialog_texts: Array[String] = []
+	var dlg_buttons: Array[Button] = []
+	_collect_buttons(fc, dlg_buttons)
+	for b in dlg_buttons:
+		dialog_texts.append(b.text)
+	_check(fc.board.selected_zone == "cascade" and fc.board.selected_index == 0,
+			"上限不足時應保留選取而非默默取消")
+	_check((fc.board.cascades[1] as Array).is_empty(), "上限不足時不應該真的搬過去")
+	# 關掉提示彈窗（點「確定」）
+	for b in dlg_buttons:
+		if b.text == "確定":
+			b.pressed.emit()
+			break
+	await tree.process_frame
+
+	# 情境二：4 個空暫存格都空、恰好 1 個空列（目的地本身）→ 上限 = (4+1)*1 = 5，
+	# 縮減成 4 張（10,9,8,7）應成功
+	fc.board.free = [-1, -1, -1, -1] as Array[int]
+	fc.board.cascades[0] = run7.duplicate()
+	fc.board.cascades[1] = []
+	fc.board.clear_selected()
+	fc._on_target("cascade", 0, 3)  # 從「10」開始的 4 張：10,9,8,7
+	_check(fc.board.selected_index == 3, "4 張子段選取失敗")
+	fc._on_target("cascade", 1, -1)
+	_check((fc.board.cascades[1] as Array).size() == 4, "資源足夠時 4 張應能搬移成功")
+	_check((fc.board.cascades[0] as Array).size() == 3, "來源應剩下 K,Q,J")
+
+	# 情境三：資源充足（4 空暫存格 + 1 個額外空列）時，完整 7 張應能一次搬移成功
+	fc.board.free = [-1, -1, -1, -1] as Array[int]
+	fc.board.cascades[0] = run7.duplicate()
+	fc.board.cascades[1] = []
+	fc.board.cascades[2] = []  # 額外一個空列
+	fc.board.clear_selected()
+	fc._on_target("cascade", 0, 0)
+	fc._on_target("cascade", 1, -1)
+	_check((fc.board.cascades[1] as Array).size() == 7, "資源充足時完整 7 張應能一次搬移成功")
+	print("[autotest] 新接龍搬移上限迴歸測試 OK")
+
+	main.goto_home()
+	await tree.process_frame
 
 	# ---- 多局進行中存檔（v0.8：各遊戲可同時掛局）----
 	var active_count := 0

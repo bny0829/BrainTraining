@@ -7,6 +7,7 @@ signal cell_pressed(index: int)
 
 var stones: Array[int] = []  # 225，0 = 空、1 = 黑、2 = 白
 var last_move := -1
+var hint_index := -1  # 提示建議的落點（空心圈，跟最後一手的實心點區分）
 
 
 func _init() -> void:
@@ -85,3 +86,7 @@ func _draw() -> void:
 	# 最後一手標記
 	if last_move >= 0 and stones[last_move] != GomokuLogic.EMPTY:
 		draw_circle(_center_of(last_move), s * 0.12, AppTheme.ACCENT)
+
+	# 提示建議：空心圈標示建議落點
+	if hint_index >= 0 and stones[hint_index] == GomokuLogic.EMPTY:
+		draw_arc(_center_of(hint_index), s * 0.3, 0.0, TAU, 32, AppTheme.ACCENT, 4.0, true)

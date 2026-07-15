@@ -62,12 +62,14 @@ func _build_ui() -> void:
 	AppTheme.style_secondary(back)
 	back.pressed.connect(_on_back)
 	top.add_child(back)
-	top.add_child(_spacer())
 	var title := Label.new()
 	title.text = "每日挑戰·新接龍" if mode == "daily" else "新接龍"
 	title.add_theme_font_size_override("font_size", 34)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.custom_minimum_size = Vector2(1, 0)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(title)
-	top.add_child(_spacer())
 	var ghost := Button.new()
 	ghost.text = "← 返回"
 	ghost.modulate = Color(1, 1, 1, 0)
@@ -116,6 +118,95 @@ func _build_ui() -> void:
 	AppTheme.style_secondary(restart)
 	restart.pressed.connect(_on_restart_pressed)
 	tools.add_child(restart)
+
+	var tools2 := HBoxContainer.new()
+	tools2.add_theme_constant_override("separation", 12)
+	col.add_child(tools2)
+	var hint_btn := Button.new()
+	hint_btn.text = "提示"
+	hint_btn.clip_text = true
+	hint_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(hint_btn)
+	hint_btn.pressed.connect(_on_hint)
+	tools2.add_child(hint_btn)
+	var how_btn := Button.new()
+	how_btn.text = "說明"
+	how_btn.clip_text = true
+	how_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(how_btn)
+	how_btn.pressed.connect(_show_how_to_play)
+	tools2.add_child(how_btn)
+
+
+## 提示：找一個目前合法的動作並直接選取那張牌，玩家自己決定搬去哪。
+## 優先順序：能上基礎堆的牌 → 牌桌之間能搬動的段（含暫存格裡的牌）。
+func _on_hint() -> void:
+	if finished:
+		return
+	# 優先：暫存格或牌桌頂牌能直接上基礎堆
+	for k in 4:
+		if board.free[k] >= 0 and _foundation_for(board.free[k]) >= 0:
+			board.set_selected("free", k, 0)
+			board.queue_redraw()
+			return
+	for c in FreecellLogic.CASCADES:
+		var cascade: Array = board.cascades[c]
+		if not cascade.is_empty() and _foundation_for(int(cascade[-1])) >= 0:
+			board.set_selected("cascade", c, cascade.size() - 1)
+			board.queue_redraw()
+			return
+	# 其次：牌桌之間能搬動的合法連續段
+	for c in FreecellLogic.CASCADES:
+		var cascade: Array = board.cascades[c]
+		for i in cascade.size():
+			var run2: Array = cascade.slice(i)
+			if not FreecellLogic.is_valid_run(run2):
+				continue
+			if _find_any_cascade_for(run2, c) >= 0:
+				board.set_selected("cascade", c, i)
+				board.queue_redraw()
+				return
+	# 暫存格裡的牌能搬到牌桌
+	for k in 4:
+		if board.free[k] >= 0 and _find_any_cascade_for([board.free[k]], -1) >= 0:
+			board.set_selected("free", k, 0)
+			board.queue_redraw()
+			return
+	# 最後：只要還有空暫存格，把最長一疊的頂牌暫放進去永遠合法
+	# （開局常常沒有其他更好的動作，這一步仍然是正確且有用的提示，不能漏掉）
+	if FreecellLogic.count_free_slots(board.free) > 0:
+		var longest := -1
+		var longest_len := 0
+		for c in FreecellLogic.CASCADES:
+			var len_c: int = (board.cascades[c] as Array).size()
+			if len_c > longest_len:
+				longest_len = len_c
+				longest = c
+		if longest >= 0:
+			board.set_selected("cascade", longest, (board.cascades[longest] as Array).size() - 1)
+			board.queue_redraw()
+			return
+	OverlayDialog.open(self, "提示", tr("目前沒有更多可行的移動了"), [{"text": "確定"}])
+
+
+func _foundation_for(card: int) -> int:
+	for f in 4:
+		if SolitaireLogic.can_foundation(card, board.foundations[f]):
+			return f
+	return -1
+
+
+func _find_any_cascade_for(run: Array, exclude: int) -> int:
+	for c in FreecellLogic.CASCADES:
+		if c == exclude:
+			continue
+		if _can_drop_on_cascade(run, c):
+			return c
+	return -1
+
+
+func _show_how_to_play() -> void:
+	OverlayDialog.open(self, "怎麼玩", tr("規則與接龍相同，但全部 52 張牌一開始就攤開。左上角 4 個暫存格可以暫時放置任意一張牌，是重要的策略資源（橘色格子）。整段連續的牌可以一次搬移，數量取決於目前空的暫存格與空列數量。"), [{"text": "確定"}])
 
 
 func _spacer() -> Control:
@@ -217,13 +308,25 @@ func _handle_cascade_tap(col: int, index: int) -> void:
 			return
 		var run := _selected_run()
 		var from_this := board.selected_zone == "cascade" and board.selected_pile == col
-		if not run.is_empty() and not from_this and _can_drop_on_cascade(run, col):
-			_push_undo()
-			_remove_selected_run()
-			(board.cascades[col] as Array).append_array(run)
-			board.clear_selected()
-			_after_move()
-			return
+		if not run.is_empty() and not from_this:
+			if _can_drop_on_cascade(run, col):
+				_push_undo()
+				_remove_selected_run()
+				(board.cascades[col] as Array).append_array(run)
+				board.clear_selected()
+				_after_move()
+				return
+			# 目的地是空列且失敗，唯一原因就是張數超過目前可搬上限——
+			# 明確告知原因並保留選取，讓玩家能立刻試別的目的地，
+			# 不要什麼都不說就默默取消選取（之前這樣玩家會誤以為卡死）
+			if cascade.is_empty():
+				var cap := _supermove_cap(true)
+				var msg := tr("這段有 %d 張牌，目前最多只能搬 %d 張") % [run.size(), cap] \
+						+ "\n" + tr("空暫存格與空列愈多，能搬的張數愈多")
+				OverlayDialog.open(self, "無法搬移", msg, [
+					{"text": "確定"},
+				])
+				return
 	# 改選這一疊的牌（該段必須是合法連續段）
 	if index < 0 or cascade.is_empty():
 		board.clear_selected()
@@ -256,15 +359,20 @@ func _remove_selected_run() -> void:
 		board.cascades[col] = (board.cascades[col] as Array).slice(0, board.selected_index)
 
 
-## 目的地檢查：疊牌規則 + 整段搬移上限
-func _can_drop_on_cascade(run: Array, col: int) -> bool:
-	var cascade: Array = board.cascades[col]
-	var to_empty := cascade.is_empty()
-	var cap := FreecellLogic.max_run_size(
+## 目前整段搬移上限（(空暫存格+1) × 2^空列數；搬到空列時該列本身不計入）
+func _supermove_cap(to_empty: bool) -> int:
+	return FreecellLogic.max_run_size(
 		FreecellLogic.count_free_slots(board.free),
 		FreecellLogic.count_empty_cascades(board.cascades),
 		to_empty
 	)
+
+
+## 目的地檢查：疊牌規則 + 整段搬移上限
+func _can_drop_on_cascade(run: Array, col: int) -> bool:
+	var cascade: Array = board.cascades[col]
+	var to_empty := cascade.is_empty()
+	var cap := _supermove_cap(to_empty)
 	if run.size() > cap:
 		return false
 	if to_empty:
@@ -287,6 +395,8 @@ func _smart_move_selected() -> void:
 				_after_move()
 				return
 	var exclude := board.selected_pile if board.selected_zone == "cascade" else -1
+	# 修正：先找非空列（優先疊牌），空列本來就被排除在下方單獨檢查，
+	# 之前的版本連空列都跳過，導致「唯一合法去處是空列」時快速移動會失效
 	for c in FreecellLogic.CASCADES:
 		if c == exclude:
 			continue
@@ -297,6 +407,26 @@ func _smart_move_selected() -> void:
 			board.clear_selected()
 			_after_move()
 			return
+	for c in FreecellLogic.CASCADES:
+		if c == exclude:
+			continue
+		if (board.cascades[c] as Array).is_empty() and _can_drop_on_cascade(run, c):
+			_push_undo()
+			_remove_selected_run()
+			(board.cascades[c] as Array).append_array(run)
+			board.clear_selected()
+			_after_move()
+			return
+	# 單張牌沒有牌桌可去時，最後試試放入空的暫存格
+	if run.size() == 1:
+		for k in 4:
+			if board.free[k] < 0:
+				_push_undo()
+				_remove_selected_run()
+				board.free[k] = int(run[0])
+				board.clear_selected()
+				_after_move()
+				return
 	board.clear_selected()
 
 

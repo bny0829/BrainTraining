@@ -69,11 +69,13 @@ func _build_ui() -> void:
 	AppTheme.style_secondary(back)
 	back.pressed.connect(_on_back)
 	top.add_child(back)
-	top.add_child(_spacer())
 	_title_label = Label.new()
 	_title_label.add_theme_font_size_override("font_size", 34)
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_title_label.custom_minimum_size = Vector2(1, 0)
+	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(_title_label)
-	top.add_child(_spacer())
 	# 佔位讓標題置中（與返回鈕等寬的透明按鈕）
 	var ghost := Button.new()
 	ghost.text = "← 返回"
@@ -114,6 +116,39 @@ func _build_ui() -> void:
 	restart.pressed.connect(_on_restart_pressed)
 	tools.add_child(restart)
 
+	var tools2 := HBoxContainer.new()
+	tools2.add_theme_constant_override("separation", 12)
+	col.add_child(tools2)
+	var hint_btn := Button.new()
+	hint_btn.text = "提示"
+	hint_btn.clip_text = true
+	hint_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(hint_btn)
+	hint_btn.pressed.connect(_on_hint)
+	tools2.add_child(hint_btn)
+	var how_btn := Button.new()
+	how_btn.text = "說明"
+	how_btn.clip_text = true
+	how_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(how_btn)
+	how_btn.pressed.connect(_show_how_to_play)
+	tools2.add_child(how_btn)
+
+
+func _on_hint() -> void:
+	if finished or _ai_pending or not _is_player_turn():
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	board.hint_index = GomokuLogic.choose_move(
+		board.stones.duplicate(), GomokuLogic.BLACK, GomokuLogic.Difficulty.EXPERT, rng
+	)
+	board.queue_redraw()
+
+
+func _show_how_to_play() -> void:
+	OverlayDialog.open(self, "怎麼玩", tr("輪流下黑白棋子，任一方向（橫、直、斜）先連成 5 子即獲勝。你執黑棋先手，AI 執白棋。點「提示」可看建議落點（空心圈）。"), [{"text": "確定"}])
+
 
 func _spacer() -> Control:
 	var s := Control.new()
@@ -128,6 +163,7 @@ func _new_game() -> void:
 	for i in GomokuLogic.CELLS:
 		board.stones[i] = GomokuLogic.EMPTY
 	board.last_move = -1
+	board.hint_index = -1
 	finished = false
 	_refresh()
 	_save_state()
@@ -179,6 +215,7 @@ func _apply_move(i: int) -> void:
 	board.stones[i] = p
 	moves.append(i)
 	board.last_move = i
+	board.hint_index = -1  # 落子後舊提示已經過期，避免誤導
 	Sfx.play("stone")
 	board.queue_redraw()
 	if GomokuLogic.check_win(board.stones, i):
@@ -272,7 +309,8 @@ func _go_home() -> void:
 func _refresh() -> void:
 	board.queue_redraw()
 	var mode_text := tr("每日挑戰·五子棋") if mode == "daily" else tr("五子棋")
-	_title_label.text = "%s·%s" % [mode_text, tr(GomokuLogic.DIFFICULTY_TEXT[difficulty])]
+	_title_label.text = "%s · %s" % [mode_text, tr(GomokuLogic.DIFFICULTY_TEXT[difficulty])]
+	_title_label.add_theme_font_size_override("font_size", 34 if _title_label.text.length() <= 16 else 24)
 	if finished:
 		_info_label.text = tr("對局結束·共 %d 手") % moves.size()
 	elif _ai_pending:

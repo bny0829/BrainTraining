@@ -94,11 +94,11 @@ func _gui_input(event: InputEvent) -> void:
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), TABLE_BG)
 
-	# 自由格
+	# 自由格（暫存格）：空格用醒目樣式標示，提醒玩家可暫放任意一張牌
 	for k in 4:
 		var rect := _slot_rect(k, 0)
 		if free[k] < 0:
-			CardDraw.slot(self, rect)
+			CardDraw.free_cell_slot(self, rect)
 		else:
 			CardDraw.card_face(self, rect, free[k])
 			if selected_zone == "free" and selected_pile == k:

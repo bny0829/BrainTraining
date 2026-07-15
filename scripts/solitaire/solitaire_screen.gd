@@ -1,7 +1,7 @@
 class_name SolitaireScreen
 extends Control
 ## 接龍遊戲畫面：點擊自動移動（點牌自動找基礎堆→牌桌的最佳去處）、
-## 翻庫存牌（翻完自動回收重來）、完整復原、殘局自動收尾、計時與存檔續玩。
+## 翻庫存牌（翻完自動回收重來，可選一次翻一張或三張）、完整復原、殘局自動收尾、計時與存檔續玩。
 ## config：{ "mode": "normal" } 新局；{ "mode": "resume" } 還原。
 
 var config: Dictionary = {}
@@ -11,6 +11,11 @@ var moves := 0
 var finished := false
 var counted := false  # 本局是否已計入場次（第一步時計）
 var undo_stack: Array = []
+## 一次翻牌張數（1 或 3）。只有最外側（最後翻出）那張可操作，
+## 移走後才能碰到下一張——這點完全沿用既有規則，waste 一律只有 waste[-1] 可互動，
+## 不需要另外處理「哪幾張是暫時看不到的」。
+var draw_count := 1
+var _draw_btn: Button
 
 var board: SolitaireBoard
 var _moves_label: Label
@@ -113,6 +118,68 @@ func _build_ui() -> void:
 	restart.pressed.connect(_on_restart_pressed)
 	tools.add_child(restart)
 
+	var tools2 := HBoxContainer.new()
+	tools2.add_theme_constant_override("separation", 12)
+	col.add_child(tools2)
+	_draw_btn = Button.new()
+	_draw_btn.clip_text = true
+	_draw_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(_draw_btn)
+	_draw_btn.pressed.connect(_on_toggle_draw_count)
+	tools2.add_child(_draw_btn)
+	var hint_btn := Button.new()
+	hint_btn.text = "提示"
+	hint_btn.clip_text = true
+	hint_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(hint_btn)
+	hint_btn.pressed.connect(_on_hint)
+	tools2.add_child(hint_btn)
+	var how_btn := Button.new()
+	how_btn.text = "說明"
+	how_btn.clip_text = true
+	how_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	AppTheme.style_secondary(how_btn)
+	how_btn.pressed.connect(_show_how_to_play)
+	tools2.add_child(how_btn)
+
+
+## 提示：找一個目前合法的動作並直接選取那張牌（不強制去哪，玩家自己點目的地）。
+## 優先順序：能上基礎堆的牌 → 牌桌之間能搬動的段 → 廢牌能搬到牌桌。
+## 都找不到才提醒翻庫存牌或告知目前卡關。
+func _on_hint() -> void:
+	if finished:
+		return
+	if not board.waste.is_empty() and _find_foundation(int(board.waste[-1])) >= 0:
+		board.set_selected("waste", 0, board.waste.size() - 1)
+		board.queue_redraw()
+		return
+	for c in SolitaireLogic.COLUMNS:
+		var column: Array = board.columns[c]
+		if not column.is_empty() and _find_foundation(int(column[-1])) >= 0:
+			board.set_selected("column", c, column.size() - 1)
+			board.queue_redraw()
+			return
+	for c in SolitaireLogic.COLUMNS:
+		var column: Array = board.columns[c]
+		var down_n: int = column.size() - board.face_up[c]
+		for i in range(down_n, column.size()):
+			if _find_column_for(int(column[i]), c) >= 0:
+				board.set_selected("column", c, i)
+				board.queue_redraw()
+				return
+	if not board.waste.is_empty() and _find_column_for(int(board.waste[-1]), -1) >= 0:
+		board.set_selected("waste", 0, board.waste.size() - 1)
+		board.queue_redraw()
+		return
+	if not board.stock.is_empty() or not board.waste.is_empty():
+		OverlayDialog.open(self, "提示", tr("目前沒有牌可以移動，試著翻開庫存牌看看"), [{"text": "確定"}])
+	else:
+		OverlayDialog.open(self, "提示", tr("目前沒有更多可行的移動了"), [{"text": "確定"}])
+
+
+func _show_how_to_play() -> void:
+	OverlayDialog.open(self, "怎麼玩", tr("把全部 52 張牌依花色從 A 到 K 收上右上角 4 個基礎堆即獲勝。牌桌上的牌可依「點數遞減、紅黑交替」的規則互相疊放，空列只能放 K。點牌選取、再點目的地移動，連點兩下自動移動。左上角可翻開庫存牌。"), [{"text": "確定"}])
+
 
 func _spacer() -> Control:
 	var s := Control.new()
@@ -136,6 +203,8 @@ func _new_game() -> void:
 	finished = false
 	counted = false
 	undo_stack.clear()
+	draw_count = int(SaveManager.section("settings").get("solitaire_draw_count", 1))
+	board.draw_count = draw_count
 	board.clear_selected()
 	board.queue_redraw()
 	_refresh()
@@ -154,6 +223,8 @@ func _restore(state: Dictionary) -> void:
 	seconds = float(state.get("seconds", 0))
 	moves = int(state.get("moves", 0))
 	counted = bool(state.get("counted", false))
+	draw_count = int(state.get("draw_count", 1))
+	board.draw_count = draw_count
 	finished = false
 	board.clear_selected()
 	board.queue_redraw()
@@ -188,7 +259,9 @@ func _tap_stock() -> void:
 		board.stock = w
 		board.waste.clear()
 	else:
-		board.waste.append(board.stock.pop_back())
+		var n := mini(draw_count, board.stock.size())
+		for i in n:
+			board.waste.append(board.stock.pop_back())
 	_after_move()
 
 
@@ -444,6 +517,25 @@ func _on_restart_pressed() -> void:
 	])
 
 
+## 切換一次翻一張／三張：因為會影響庫存翻牌的行為，必須重新發牌才能生效
+func _on_toggle_draw_count() -> void:
+	var next := 3 if draw_count == 1 else 1
+	OverlayDialog.open(self, "重新發牌？", tr("切換為%s後將重新開始這一局") % _draw_mode_text(next), [
+		{"text": "確定切換", "action": _apply_draw_count.bind(next)},
+		{"text": "取消", "secondary": true},
+	])
+
+
+func _apply_draw_count(next: int) -> void:
+	SaveManager.section("settings")["solitaire_draw_count"] = next
+	SaveManager.save()
+	_new_game()
+
+
+func _draw_mode_text(n: int) -> String:
+	return tr("一次翻一張") if n == 1 else tr("一次翻三張")
+
+
 func _on_back() -> void:
 	if not finished:
 		_save_state()
@@ -463,6 +555,7 @@ func _refresh() -> void:
 	_undo_btn.disabled = finished or undo_stack.is_empty()
 	_auto_btn.visible = not finished and _can_auto_finish() \
 			and not SolitaireLogic.is_won(board.foundations)
+	_draw_btn.text = _draw_mode_text(draw_count)
 
 
 func _save_state() -> void:
@@ -480,6 +573,7 @@ func _save_state() -> void:
 		"seconds": int(seconds),
 		"moves": moves,
 		"counted": counted,
+		"draw_count": draw_count,
 	})
 
 
