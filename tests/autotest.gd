@@ -694,6 +694,9 @@ func _shot(fname: String) -> void:
 	var dir := OS.get_environment("BRAINCLUB_SHOT")
 	if dir == "" or DisplayServer.get_name() == "headless":
 		return
+	# 畫面切換有 0.15 秒淡入動畫，且舊畫面用 queue_free() 移除不是立即生效，
+	# 太早截圖常常拍到新舊畫面疊在一起的轉場過程；等轉場穩定再拍。
+	await get_tree().create_timer(0.35).timeout
 	await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(dir.path_join(fname))

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c8xl8anuj416a"
-path="res://.godot/imported/sudoku.png-72ba2fb6383543599eecda32bacd3a11.ctex"
+uid="uid://brdp1pssn58ni"
+path="res://.godot/imported/05_minesweeper.png-aa2220fd3d92fd9df94929c18b2687bb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://store_assets/sudoku.png"
-dest_files=["res://.godot/imported/sudoku.png-72ba2fb6383543599eecda32bacd3a11.ctex"]
+source_file="res://store_assets/05_minesweeper.png"
+dest_files=["res://.godot/imported/05_minesweeper.png-aa2220fd3d92fd9df94929c18b2687bb.ctex"]
 
 [params]
 

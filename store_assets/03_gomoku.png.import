@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://iris8lfjmiuv"
-path="res://.godot/imported/solitaire.png-c63ead29a4ec747adea9afd528f9184f.ctex"
+uid="uid://cwe31gb576p83"
+path="res://.godot/imported/03_gomoku.png-0cad19455e302667d966d8a1f49063e1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://store_assets/solitaire.png"
-dest_files=["res://.godot/imported/solitaire.png-c63ead29a4ec747adea9afd528f9184f.ctex"]
+source_file="res://store_assets/03_gomoku.png"
+dest_files=["res://.godot/imported/03_gomoku.png-0cad19455e302667d966d8a1f49063e1.ctex"]
 
 [params]
 

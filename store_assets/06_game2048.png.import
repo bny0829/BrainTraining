@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://myelxopuak5g"
-path="res://.godot/imported/reversi.png-3173dbb3135324f6f3dcab9321a4da91.ctex"
+uid="uid://ciuxom42t3js2"
+path="res://.godot/imported/06_game2048.png-fd84b4272efbcd7ed4bd1e322789775d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://store_assets/reversi.png"
-dest_files=["res://.godot/imported/reversi.png-3173dbb3135324f6f3dcab9321a4da91.ctex"]
+source_file="res://store_assets/06_game2048.png"
+dest_files=["res://.godot/imported/06_game2048.png-fd84b4272efbcd7ed4bd1e322789775d.ctex"]
 
 [params]
 

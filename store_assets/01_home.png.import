@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bbhdp6qq61jge"
-path="res://.godot/imported/gomoku.png-091eba264af34614d3aba6ee5fb07db3.ctex"
+uid="uid://cjbwu5ehkbshy"
+path="res://.godot/imported/01_home.png-9e37c1fcce5ce9cd9e09e3a44b2d146a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://store_assets/gomoku.png"
-dest_files=["res://.godot/imported/gomoku.png-091eba264af34614d3aba6ee5fb07db3.ctex"]
+source_file="res://store_assets/01_home.png"
+dest_files=["res://.godot/imported/01_home.png-9e37c1fcce5ce9cd9e09e3a44b2d146a.ctex"]
 
 [params]
 

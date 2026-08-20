@@ -46,6 +46,10 @@ func _ready() -> void:
 	if OS.get_environment("BRAINCLUB_BANNER") != "":
 		var banner: GDScript = load("res://tools/banner.gd")
 		add_child(banner.new())
+	# 商店截圖產生器（乾淨版，不觸發成就通知）：BRAINCLUB_STORE_SHOTS=1 + BRAINCLUB_SHOT=輸出資料夾
+	if OS.get_environment("BRAINCLUB_STORE_SHOTS") == "1":
+		var shots: GDScript = load("res://tools/store_shots.gd")
+		add_child(shots.new())
 
 
 ## 依裝置回報的安全顯示區域（挖孔、瀏海、系統手勢列）設定畫面內縮。

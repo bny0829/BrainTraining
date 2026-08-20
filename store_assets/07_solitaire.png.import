@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cs7oifpcrbtx1"
-path="res://.godot/imported/minesweeper.png-fcf34121bc57ee36ebcac84ed36960fb.ctex"
+uid="uid://b5vabf5rvysyo"
+path="res://.godot/imported/07_solitaire.png-43868837b2a7c9ea885b841aa558b3f8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://store_assets/minesweeper.png"
-dest_files=["res://.godot/imported/minesweeper.png-fcf34121bc57ee36ebcac84ed36960fb.ctex"]
+source_file="res://store_assets/07_solitaire.png"
+dest_files=["res://.godot/imported/07_solitaire.png-43868837b2a7c9ea885b841aa558b3f8.ctex"]
 
 [params]
 
